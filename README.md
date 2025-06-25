@@ -1,3 +1,3 @@
-# flutter_application_rpl_final
+# CALORIE TRACKER APP FOR RPL ASSIGNMENT
 
-A new Flutter project.
+RPL GROUP 1
