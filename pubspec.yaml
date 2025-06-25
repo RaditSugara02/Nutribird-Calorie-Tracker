@@ -1,0 +1,35 @@
+name: flutter_application_rpl_final
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: ^3.8.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  shared_preferences: ^2.2.3
+  fl_chart: ^0.67.0
+  supabase_flutter: ^2.5.0
+  image_picker: ^1.1.2
+  path_provider: ^2.1.5
+  file_picker: 10.1.9
+  intl: ^0.20.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.13.1
+
+flutter:
+  uses-material-design: true
+  assets:
+    - lib/designs/
+    - lib/designs/BackgroundDesign/
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "lib/designs/logo_baru.png"
