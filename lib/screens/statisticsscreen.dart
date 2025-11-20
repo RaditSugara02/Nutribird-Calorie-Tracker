@@ -1,16 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
 import 'package:flutter_application_rpl_final/screens/dashboardscreen.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class StatisticsScreen extends StatefulWidget {
   final List<WeightEntry> weightEntries;
 
-  const StatisticsScreen({
-    super.key,
-    required this.weightEntries,
-  });
+  const StatisticsScreen({super.key, required this.weightEntries});
 
   @override
   State<StatisticsScreen> createState() => StatisticsScreenState();
@@ -26,7 +21,9 @@ class StatisticsScreenState extends State<StatisticsScreen> {
   void didUpdateWidget(covariant StatisticsScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.weightEntries != oldWidget.weightEntries) {
-      print('StatisticsScreen: weightEntries updated! New length: ${widget.weightEntries.length}');
+      print(
+        'StatisticsScreen: weightEntries updated! New length: ${widget.weightEntries.length}',
+      );
     }
   }
 
@@ -48,8 +45,18 @@ class StatisticsScreenState extends State<StatisticsScreen> {
       }
     }
 
-    double minWeight = widget.weightEntries.isNotEmpty ? widget.weightEntries.map((e) => e.weight).reduce((a, b) => a < b ? a : b) - 5 : 0;
-    double maxWeight = widget.weightEntries.isNotEmpty ? widget.weightEntries.map((e) => e.weight).reduce((a, b) => a > b ? a : b) + 5 : 100;
+    double minWeight = widget.weightEntries.isNotEmpty
+        ? widget.weightEntries
+                  .map((e) => e.weight)
+                  .reduce((a, b) => a < b ? a : b) -
+              5
+        : 0;
+    double maxWeight = widget.weightEntries.isNotEmpty
+        ? widget.weightEntries
+                  .map((e) => e.weight)
+                  .reduce((a, b) => a > b ? a : b) +
+              5
+        : 100;
 
     return Scaffold(
       backgroundColor: darkGreenBg,
@@ -62,7 +69,10 @@ class StatisticsScreenState extends State<StatisticsScreen> {
               Center(
                 child: Text(
                   'Belum ada data berat badan yang dicatat.',
-                  style: TextStyle(fontSize: 18, color: lightGreenText.withOpacity(0.7)),
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: lightGreenText.withOpacity(0.7),
+                  ),
                   textAlign: TextAlign.center,
                 ),
               )
@@ -92,8 +102,12 @@ class StatisticsScreenState extends State<StatisticsScreen> {
                     ),
                     titlesData: FlTitlesData(
                       show: true,
-                      rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                      topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      rightTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false),
+                      ),
+                      topTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false),
+                      ),
                       bottomTitles: AxisTitles(
                         sideTitles: SideTitles(
                           showTitles: true,
@@ -106,7 +120,10 @@ class StatisticsScreenState extends State<StatisticsScreen> {
                                 space: 8.0,
                                 child: Text(
                                   '${entry.date.day}/${entry.date.month}',
-                                  style: TextStyle(color: lightGreenText, fontSize: 10),
+                                  style: TextStyle(
+                                    color: lightGreenText,
+                                    fontSize: 10,
+                                  ),
                                 ),
                               );
                             }
@@ -124,7 +141,10 @@ class StatisticsScreenState extends State<StatisticsScreen> {
                               space: 8.0,
                               child: Text(
                                 value.toInt().toString(),
-                                style: TextStyle(color: lightGreenText, fontSize: 10),
+                                style: TextStyle(
+                                  color: lightGreenText,
+                                  fontSize: 10,
+                                ),
                               ),
                             );
                           },
@@ -134,10 +154,15 @@ class StatisticsScreenState extends State<StatisticsScreen> {
                     ),
                     borderData: FlBorderData(
                       show: true,
-                      border: Border.all(color: lightGreenText.withOpacity(0.5), width: 1),
+                      border: Border.all(
+                        color: lightGreenText.withOpacity(0.5),
+                        width: 1,
+                      ),
                     ),
                     minX: 0,
-                    maxX: spots.length <= 1 ? 1.0 : (spots.length - 1).toDouble(),
+                    maxX: spots.length <= 1
+                        ? 1.0
+                        : (spots.length - 1).toDouble(),
                     minY: minWeight,
                     maxY: maxWeight,
                     lineBarsData: [
@@ -147,7 +172,9 @@ class StatisticsScreenState extends State<StatisticsScreen> {
                         color: lightGreenText, // Warna garis grafik
                         barWidth: 3,
                         isStrokeCapRound: true,
-                        dotData: const FlDotData(show: true), // Tampilkan titik data
+                        dotData: const FlDotData(
+                          show: true,
+                        ), // Tampilkan titik data
                         belowBarData: BarAreaData(
                           show: true,
                           color: lightGreenText.withOpacity(0.3),
@@ -160,23 +187,31 @@ class StatisticsScreenState extends State<StatisticsScreen> {
               const SizedBox(height: 30),
               Text(
                 'Riwayat Berat Badan',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: lightGreenText),
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: lightGreenText,
+                ),
               ),
               const SizedBox(height: 10),
               // Menampilkan daftar berat badan secara tradisional juga (opsional)
               ListView.builder(
                 shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(), // Menonaktifkan scroll ListView
+                physics:
+                    const NeverScrollableScrollPhysics(), // Menonaktifkan scroll ListView
                 itemCount: widget.weightEntries.length,
                 itemBuilder: (context, index) {
                   final entry = widget.weightEntries[index];
                   return Card(
-                    color: darkGreenBg, 
+                    color: darkGreenBg,
                     elevation: 0,
                     margin: const EdgeInsets.symmetric(vertical: 8.0),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
-                      side: BorderSide(color: lightGreenText.withOpacity(0.5), width: 1),
+                      side: BorderSide(
+                        color: lightGreenText.withOpacity(0.5),
+                        width: 1,
+                      ),
                     ),
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
@@ -185,11 +220,18 @@ class StatisticsScreenState extends State<StatisticsScreen> {
                         children: [
                           Text(
                             '${entry.date.day.toString().padLeft(2, '0')}-${entry.date.month.toString().padLeft(2, '0')}-${entry.date.year}',
-                            style: TextStyle(fontSize: 16, color: lightGreenText.withOpacity(0.8)),
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: lightGreenText.withOpacity(0.8),
+                            ),
                           ),
                           Text(
                             '${entry.weight.toStringAsFixed(1)} kg',
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: lightGreenText),
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: lightGreenText,
+                            ),
                           ),
                         ],
                       ),
@@ -203,4 +245,4 @@ class StatisticsScreenState extends State<StatisticsScreen> {
       ),
     );
   }
-} 
+}

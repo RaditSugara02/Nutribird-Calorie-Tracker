@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_rpl_final/screens/dashboardscreen.dart';
+import 'package:flutter_application_rpl_final/screens/inputnamescreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
@@ -13,8 +14,8 @@ class OverviewResultScreen extends StatelessWidget {
   final double weight;
   final String activityLevel;
   final String goal;
-  final String email;
-  final String password;
+  final String? email;
+  final String? password;
 
   const OverviewResultScreen({
     super.key,
@@ -27,8 +28,8 @@ class OverviewResultScreen extends StatelessWidget {
     required this.weight,
     required this.activityLevel,
     required this.goal,
-    required this.email,
-    required this.password,
+    this.email,
+    this.password,
   });
 
   // Method untuk menyimpan data profil pengguna
@@ -76,13 +77,16 @@ class OverviewResultScreen extends StatelessWidget {
         dailyCalories = tdee;
         break;
       case 'Menurunkan Berat Badan Ringan (0.25 kg/minggu)':
-        dailyCalories = tdee - 250; // Defisit 250 kalori per hari untuk ~0.25 kg/minggu
+        dailyCalories =
+            tdee - 250; // Defisit 250 kalori per hari untuk ~0.25 kg/minggu
         break;
       case 'Menurunkan Berat Badan Sedang (0.5 kg/minggu)':
-        dailyCalories = tdee - 500; // Defisit 500 kalori per hari untuk ~0.5 kg/minggu
+        dailyCalories =
+            tdee - 500; // Defisit 500 kalori per hari untuk ~0.5 kg/minggu
         break;
       case 'Menurunkan Berat Badan Ekstrim (1 kg/minggu)':
-        dailyCalories = tdee - 1000; // Defisit 1000 kalori per hari untuk ~1 kg/minggu
+        dailyCalories =
+            tdee - 1000; // Defisit 1000 kalori per hari untuk ~1 kg/minggu
         break;
       case 'Menambah Berat Badan':
         dailyCalories = tdee + 500; // Surplus 500 kalori per hari
@@ -116,8 +120,8 @@ class OverviewResultScreen extends StatelessWidget {
       'weight': weight,
       'activityLevel': activityLevel,
       'goal': goal,
-      'email': email, // Simpan email
-      'password': password, // Simpan password
+      'email': email ?? '', // Simpan email
+      'password': password ?? '', // Simpan password
       'dailyCalories': dailyCalories.round(),
       'proteinGrams': proteinGrams.round(),
       'fatGrams': fatGrams.round(),
@@ -172,31 +176,27 @@ class OverviewResultScreen extends StatelessWidget {
 
     // Adjust calories based on goal
     double dailyCalories;
-    String goalDescription;
     switch (goal) {
       case 'Menjaga Berat Badan':
         dailyCalories = tdee;
-        goalDescription = 'Untuk menjaga berat badan Anda, konsumsi sekitar';
         break;
       case 'Menurunkan Berat Badan Ringan (0.25 kg/minggu)':
-        dailyCalories = tdee - 250; // Defisit 250 kalori per hari untuk ~0.25 kg/minggu
-        goalDescription = 'Untuk penurunan berat badan ringan (0.25 kg/minggu), konsumsi sekitar';
+        dailyCalories =
+            tdee - 250; // Defisit 250 kalori per hari untuk ~0.25 kg/minggu
         break;
       case 'Menurunkan Berat Badan Sedang (0.5 kg/minggu)':
-        dailyCalories = tdee - 500; // Defisit 500 kalori per hari untuk ~0.5 kg/minggu
-        goalDescription = 'Untuk penurunan berat badan sedang (0.5 kg/minggu), konsumsi sekitar';
+        dailyCalories =
+            tdee - 500; // Defisit 500 kalori per hari untuk ~0.5 kg/minggu
         break;
       case 'Menurunkan Berat Badan Ekstrim (1 kg/minggu)':
-        dailyCalories = tdee - 1000; // Defisit 1000 kalori per hari untuk ~1 kg/minggu
-        goalDescription = 'Untuk penurunan berat badan ekstrim (1 kg/minggu), konsumsi sekitar';
+        dailyCalories =
+            tdee - 1000; // Defisit 1000 kalori per hari untuk ~1 kg/minggu
         break;
       case 'Menambah Berat Badan':
         dailyCalories = tdee + 500; // Surplus 500 kalori per hari
-        goalDescription = 'Untuk menambah berat badan, konsumsi sekitar';
         break;
       default:
         dailyCalories = tdee;
-        goalDescription = 'Estimasi kalori harian Anda:';
     }
 
     // Ensure daily calories don't go below a healthy minimum (e.g., 1200 for women, 1500 for men, adjust as needed)
@@ -224,12 +224,6 @@ class OverviewResultScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            IconButton(
-              icon: Icon(Icons.arrow_back_ios, color: lightGreenText),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
             const SizedBox(height: 20),
             Text(
               'Selamat, ${name.split(' ').first}! ',
@@ -242,10 +236,7 @@ class OverviewResultScreen extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               'Rencana kalori pribadimu sudah siap!',
-              style: TextStyle(
-                fontSize: 24,
-                color: lightGreenText,
-              ),
+              style: TextStyle(fontSize: 24, color: lightGreenText),
             ),
             const SizedBox(height: 40),
             Row(
@@ -255,7 +246,10 @@ class OverviewResultScreen extends StatelessWidget {
                   children: [
                     Text(
                       'Kebutuhan Kalori Kamu',
-                      style: TextStyle(fontSize: 16, color: lightGreenText.withOpacity(0.8)),
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: lightGreenText.withOpacity(0.8),
+                      ),
                     ),
                     const SizedBox(height: 5),
                     Text(
@@ -272,7 +266,10 @@ class OverviewResultScreen extends StatelessWidget {
                   children: [
                     Text(
                       'BMI',
-                      style: TextStyle(fontSize: 16, color: lightGreenText.withOpacity(0.8)),
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: lightGreenText.withOpacity(0.8),
+                      ),
                     ),
                     const SizedBox(height: 5),
                     Text(
@@ -291,9 +288,24 @@ class OverviewResultScreen extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildMacronutrientColumn('Karbo', carbGrams.round(), lightGreenText, darkGreenBg),
-                _buildMacronutrientColumn('Lemak', fatGrams.round(), lightGreenText, darkGreenBg),
-                _buildMacronutrientColumn('Protein', proteinGrams.round(), lightGreenText, darkGreenBg),
+                _buildMacronutrientColumn(
+                  'Karbo',
+                  carbGrams.round(),
+                  lightGreenText,
+                  darkGreenBg,
+                ),
+                _buildMacronutrientColumn(
+                  'Lemak',
+                  fatGrams.round(),
+                  lightGreenText,
+                  darkGreenBg,
+                ),
+                _buildMacronutrientColumn(
+                  'Protein',
+                  proteinGrams.round(),
+                  lightGreenText,
+                  darkGreenBg,
+                ),
               ],
             ),
             const SizedBox(height: 30),
@@ -311,24 +323,53 @@ class OverviewResultScreen extends StatelessWidget {
                   children: [
                     Text(
                       'Detail Profil Anda',
-                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: lightGreenText),
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: lightGreenText,
+                      ),
                     ),
                     const SizedBox(height: 15),
                     _buildInfoRow('Nama', name, lightGreenText),
                     const SizedBox(height: 10),
-                    _buildInfoRow('Email', email, lightGreenText), // Tampilkan email
+                    if (email != null && email!.isNotEmpty)
+                      _buildInfoRow(
+                        'Email',
+                        email!,
+                        lightGreenText,
+                      ), // Tampilkan email
                     const SizedBox(height: 10),
                     _buildInfoRow('Gender', gender, lightGreenText),
                     const SizedBox(height: 10),
-                    _buildInfoRow('Tahun Lahir', birthYear.toString(), lightGreenText),
+                    _buildInfoRow(
+                      'Tahun Lahir',
+                      birthYear.toString(),
+                      lightGreenText,
+                    ),
                     const SizedBox(height: 10),
-                    _buildInfoRow('Tinggi Badan', '${height.round()} cm', lightGreenText),
+                    _buildInfoRow(
+                      'Tinggi Badan',
+                      '${height.round()} cm',
+                      lightGreenText,
+                    ),
                     const SizedBox(height: 10),
-                    _buildInfoRow('Berat Badan', '${weight.round()} kg', lightGreenText),
+                    _buildInfoRow(
+                      'Berat Badan',
+                      '${weight.round()} kg',
+                      lightGreenText,
+                    ),
                     const SizedBox(height: 10),
-                    _buildInfoRow('Tingkat Aktivitas', activityLevel, lightGreenText),
+                    _buildInfoRow(
+                      'Tingkat Aktivitas',
+                      activityLevel,
+                      lightGreenText,
+                    ),
                     const SizedBox(height: 10),
-                    _buildInfoRow('Tujuan', goal.replaceAll(RegExp(r'\s*\([^)]*\)\s*'), ''), lightGreenText),
+                    _buildInfoRow(
+                      'Tujuan',
+                      goal.replaceAll(RegExp(r'\s*\([^)]*\)\s*'), ''),
+                      lightGreenText,
+                    ),
                   ],
                 ),
               ),
@@ -339,7 +380,7 @@ class OverviewResultScreen extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: () async {
                   // Pastikan data profil telah disimpan sebelum navigasi
-                  await _saveUserProfile(); 
+                  await _saveUserProfile();
                   Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(
@@ -362,6 +403,33 @@ class OverviewResultScreen extends StatelessWidget {
                 ),
               ),
             ),
+            const SizedBox(height: 12),
+            Align(
+              alignment: Alignment.center,
+              child: TextButton(
+                onPressed: () {
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const InputNameScreen(),
+                    ),
+                    (Route<dynamic> route) => false,
+                  );
+                },
+                style: TextButton.styleFrom(
+                  foregroundColor: lightGreenText,
+                  padding: EdgeInsets.zero,
+                ),
+                child: Text(
+                  'Ubah data?',
+                  style: TextStyle(
+                    color: lightGreenText,
+                    fontSize: 14,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -379,7 +447,11 @@ class OverviewResultScreen extends StatelessWidget {
         Flexible(
           child: Text(
             value,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: textColor),
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: textColor,
+            ),
             textAlign: TextAlign.end,
             overflow: TextOverflow.ellipsis,
           ),
@@ -388,7 +460,12 @@ class OverviewResultScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMacronutrientColumn(String label, int grams, Color textColor, Color bgColor) {
+  Widget _buildMacronutrientColumn(
+    String label,
+    int grams,
+    Color textColor,
+    Color bgColor,
+  ) {
     return Column(
       children: [
         Text(
@@ -405,7 +482,11 @@ class OverviewResultScreen extends StatelessWidget {
           ),
           child: Text(
             '${grams}g',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: textColor),
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: textColor,
+            ),
           ),
         ),
       ],

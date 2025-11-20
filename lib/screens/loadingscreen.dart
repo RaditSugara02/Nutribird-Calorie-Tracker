@@ -12,8 +12,8 @@ class LoadingScreen extends StatefulWidget {
   final double weight;
   final String activityLevel;
   final String goal;
-  final String email;
-  final String password;
+  final String? email;
+  final String? password;
 
   const LoadingScreen({
     super.key,
@@ -26,8 +26,8 @@ class LoadingScreen extends StatefulWidget {
     required this.weight,
     required this.activityLevel,
     required this.goal,
-    required this.email,
-    required this.password,
+    this.email,
+    this.password,
   });
 
   @override
@@ -81,8 +81,8 @@ class _LoadingScreenState extends State<LoadingScreen> {
           weight: widget.weight,
           activityLevel: widget.activityLevel,
           goal: widget.goal,
-          email: widget.email,
-          password: widget.password,
+          email: widget.email ?? '',
+          password: widget.password ?? '',
         ),
       ),
       (Route<dynamic> route) => false, // Ini akan menghapus semua rute sebelumnya

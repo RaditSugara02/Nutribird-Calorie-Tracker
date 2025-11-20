@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_application_rpl_final/screens/welcomescreen_2.dart';
+import 'package:flutter_application_rpl_final/screens/welcomescreen_1.dart';
 import 'dart:convert'; // Untuk JSON encode/decode
 import 'dart:io'; // Untuk File
 import 'package:path_provider/path_provider.dart'; // Untuk mendapatkan path direktori
@@ -19,11 +19,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await prefs.clear(); // Hapus semua data di SharedPreferences
     print('User data cleared and logged out.');
 
-    // Navigasi ke WelcomeScreen2 dan hapus semua rute sebelumnya
+    // Navigasi ke WelcomeScreen1 dan hapus semua rute sebelumnya
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(
-        builder: (context) => const WelcomeScreen2(),
+        builder: (context) => const WelcomeScreen1(),
       ),
       (Route<dynamic> route) => false,
     );
@@ -32,10 +32,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _clearAllAppData() async {
     final prefs = await SharedPreferences.getInstance();
 
-    // Hapus data registrasi/login
-    await prefs.remove('registered_email');
-    await prefs.remove('registered_password');
-    await prefs.remove('user_profile_data'); // Hapus juga data profil pengguna
+    // Hapus data profil pengguna
+    await prefs.remove('user_profile_data');
 
     // Hapus entri berat badan dan makanan khusus
     await prefs.remove('all_weight_entries');
@@ -138,7 +136,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         // Restart aplikasi (atau navigasi ulang ke WelcomeScreen untuk memuat ulang data)
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (context) => const WelcomeScreen2()),
+          MaterialPageRoute(builder: (context) => const WelcomeScreen1()),
           (Route<dynamic> route) => false,
         );
       } else {

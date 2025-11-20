@@ -3,10 +3,10 @@ import 'package:flutter_application_rpl_final/screens/selectgenderscreen.dart';
 import 'package:flutter_application_rpl_final/widgets/progress_bar.dart';
 
 class InputNameScreen extends StatefulWidget {
-  final String email;
-  final String password;
+  final String? email;
+  final String? password;
 
-  const InputNameScreen({super.key, required this.email, required this.password});
+  const InputNameScreen({super.key, this.email, this.password});
 
   @override
   State<InputNameScreen> createState() => _InputNameScreenState();
@@ -119,8 +119,8 @@ class _InputNameScreenState extends State<InputNameScreen> {
                         MaterialPageRoute(
                           builder: (context) => SelectGenderScreen(
                             name: _nameController.text,
-                            email: widget.email,
-                            password: widget.password,
+                            email: widget.email ?? '',
+                            password: widget.password ?? '',
                           ),
                         ),
                       );

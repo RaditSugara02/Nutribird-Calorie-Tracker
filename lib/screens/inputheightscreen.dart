@@ -8,8 +8,8 @@ class InputHeightScreen extends StatefulWidget {
   final int birthDay;
   final int birthMonth;
   final int birthYear;
-  final String email;
-  final String password;
+  final String? email;
+  final String? password;
 
   const InputHeightScreen({
     super.key,
@@ -18,8 +18,8 @@ class InputHeightScreen extends StatefulWidget {
     required this.birthDay,
     required this.birthMonth,
     required this.birthYear,
-    required this.email,
-    required this.password,
+    this.email,
+    this.password,
   });
 
   @override
@@ -147,8 +147,8 @@ class _InputHeightScreenState extends State<InputHeightScreen> {
                             birthMonth: widget.birthMonth,
                             birthYear: widget.birthYear,
                             height: double.parse(_heightController.text),
-                            email: widget.email,
-                            password: widget.password,
+                            email: widget.email ?? '',
+                            password: widget.password ?? '',
                           ),
                         ),
                       );

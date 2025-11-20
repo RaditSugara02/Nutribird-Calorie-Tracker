@@ -5,10 +5,16 @@ import 'package:flutter_application_rpl_final/widgets/progress_bar.dart';
 class SelectBirthYearScreen extends StatefulWidget {
   final String name;
   final String gender;
-  final String email;
-  final String password;
+  final String? email;
+  final String? password;
 
-  const SelectBirthYearScreen({super.key, required this.name, required this.gender, required this.email, required this.password});
+  const SelectBirthYearScreen({
+    super.key,
+    required this.name,
+    required this.gender,
+    this.email,
+    this.password,
+  });
 
   @override
   State<SelectBirthYearScreen> createState() => _SelectBirthYearScreenState();
@@ -20,15 +26,35 @@ class _SelectBirthYearScreenState extends State<SelectBirthYearScreen> {
   int? _selectedMonth;
   int? _selectedYear;
 
-  final FixedExtentScrollController _dayController = FixedExtentScrollController();
-  final FixedExtentScrollController _monthController = FixedExtentScrollController();
-  final FixedExtentScrollController _yearController = FixedExtentScrollController();
+  final FixedExtentScrollController _dayController =
+      FixedExtentScrollController();
+  final FixedExtentScrollController _monthController =
+      FixedExtentScrollController();
+  final FixedExtentScrollController _yearController =
+      FixedExtentScrollController();
 
-  List<int> daysInMonth = List.generate(31, (index) => index + 1); // Max 31 days
+  List<int> daysInMonth = List.generate(
+    31,
+    (index) => index + 1,
+  ); // Max 31 days
   List<String> months = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'Mei',
+    'Jun',
+    'Jul',
+    'Agu',
+    'Sep',
+    'Okt',
+    'Nov',
+    'Des',
   ];
-  List<int> years = List.generate(100, (index) => DateTime.now().year - index); // Last 100 years
+  List<int> years = List.generate(
+    100,
+    (index) => DateTime.now().year - index,
+  ); // Last 100 years
 
   @override
   void initState() {
@@ -95,7 +121,9 @@ class _SelectBirthYearScreenState extends State<SelectBirthYearScreen> {
                   ),
                   Expanded(
                     child: Padding(
-                      padding: const EdgeInsets.only(right: 20.0), // Adjust padding as needed
+                      padding: const EdgeInsets.only(
+                        right: 20.0,
+                      ), // Adjust padding as needed
                       child: ProgressBar(currentStep: 3, totalSteps: 7),
                     ),
                   ),
@@ -132,55 +160,82 @@ class _SelectBirthYearScreenState extends State<SelectBirthYearScreen> {
                         _selectedDay = daysInMonth[index];
                       });
                     },
-                    itemBuilder: (context, index) => Text(daysInMonth[index].toString().padLeft(2, '0'),
-                        style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: index == _selectedDay! - 1 ? lightGreenText : lightGreenText.withOpacity(0.6))), // Highlight selected
+                    itemBuilder: (context, index) => Text(
+                      daysInMonth[index].toString().padLeft(2, '0'),
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: index == _selectedDay! - 1
+                            ? lightGreenText
+                            : lightGreenText.withOpacity(0.6),
+                      ),
+                    ), // Highlight selected
                   ),
                   _buildDatePickerColumn(
                     label: 'Bulan',
                     controller: _monthController,
                     childCount: months.length,
-                    selectedIndex: _selectedMonth != null ? _selectedMonth! - 1 : 0,
+                    selectedIndex: _selectedMonth != null
+                        ? _selectedMonth! - 1
+                        : 0,
                     onSelectedItemChanged: (index) {
                       setState(() {
                         _selectedMonth = index + 1;
                         // Adjust days in month if necessary after month change
-                        daysInMonth = List.generate(_getDaysInMonth(_selectedMonth!, _selectedYear!), (idx) => idx + 1);
+                        daysInMonth = List.generate(
+                          _getDaysInMonth(_selectedMonth!, _selectedYear!),
+                          (idx) => idx + 1,
+                        );
                         if (_selectedDay! > daysInMonth.length) {
-                          _selectedDay = daysInMonth.length; // Adjust day if it exceeds new max days
+                          _selectedDay = daysInMonth
+                              .length; // Adjust day if it exceeds new max days
                           _dayController.jumpToItem(_selectedDay! - 1);
                         }
                       });
                     },
-                    itemBuilder: (context, index) => Text(months[index],
-                        style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: index == _selectedMonth! - 1 ? lightGreenText : lightGreenText.withOpacity(0.6))), // Highlight selected
+                    itemBuilder: (context, index) => Text(
+                      months[index],
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: index == _selectedMonth! - 1
+                            ? lightGreenText
+                            : lightGreenText.withOpacity(0.6),
+                      ),
+                    ), // Highlight selected
                   ),
                   _buildDatePickerColumn(
                     label: 'Tahun',
                     controller: _yearController,
                     childCount: years.length,
-                    selectedIndex: _selectedYear != null ? years.indexOf(_selectedYear!) : 0,
+                    selectedIndex: _selectedYear != null
+                        ? years.indexOf(_selectedYear!)
+                        : 0,
                     onSelectedItemChanged: (index) {
                       setState(() {
                         _selectedYear = years[index];
                         // Adjust days in month if necessary after year change (leap year check)
-                        daysInMonth = List.generate(_getDaysInMonth(_selectedMonth!, _selectedYear!), (idx) => idx + 1);
+                        daysInMonth = List.generate(
+                          _getDaysInMonth(_selectedMonth!, _selectedYear!),
+                          (idx) => idx + 1,
+                        );
                         if (_selectedDay! > daysInMonth.length) {
-                          _selectedDay = daysInMonth.length; // Adjust day if it exceeds new max days
+                          _selectedDay = daysInMonth
+                              .length; // Adjust day if it exceeds new max days
                           _dayController.jumpToItem(_selectedDay! - 1);
                         }
                       });
                     },
-                    itemBuilder: (context, index) => Text(years[index].toString(),
-                        style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: index == years.indexOf(_selectedYear!) ? lightGreenText : lightGreenText.withOpacity(0.6))), // Highlight selected
+                    itemBuilder: (context, index) => Text(
+                      years[index].toString(),
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: index == years.indexOf(_selectedYear!)
+                            ? lightGreenText
+                            : lightGreenText.withOpacity(0.6),
+                      ),
+                    ), // Highlight selected
                   ),
                 ],
               ),
@@ -189,13 +244,19 @@ class _SelectBirthYearScreenState extends State<SelectBirthYearScreen> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    if (_selectedDay != null && _selectedMonth != null && _selectedYear != null) {
+                    if (_selectedDay != null &&
+                        _selectedMonth != null &&
+                        _selectedYear != null) {
                       final int currentYear = DateTime.now().year;
                       final int age = currentYear - _selectedYear!;
 
                       if (age < 15 || age > 80) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Usia harus antara 15 dan 80 tahun untuk perhitungan kalori.')),
+                          const SnackBar(
+                            content: Text(
+                              'Usia harus antara 15 dan 80 tahun untuk perhitungan kalori.',
+                            ),
+                          ),
                         );
                       } else {
                         Navigator.push(
@@ -207,15 +268,19 @@ class _SelectBirthYearScreenState extends State<SelectBirthYearScreen> {
                               birthDay: _selectedDay!,
                               birthMonth: _selectedMonth!,
                               birthYear: _selectedYear!,
-                              email: widget.email,
-                              password: widget.password,
+                              email: widget.email ?? '',
+                              password: widget.password ?? '',
                             ),
                           ),
                         );
                       }
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Mohon pilih tanggal lahir lengkap Anda')),
+                        const SnackBar(
+                          content: Text(
+                            'Mohon pilih tanggal lahir lengkap Anda',
+                          ),
+                        ),
                       );
                     }
                   },
@@ -255,7 +320,10 @@ class _SelectBirthYearScreenState extends State<SelectBirthYearScreen> {
       children: [
         Text(
           label,
-          style: TextStyle(fontSize: 14, color: lightGreenText.withOpacity(0.8)),
+          style: TextStyle(
+            fontSize: 14,
+            color: lightGreenText.withOpacity(0.8),
+          ),
         ),
         const SizedBox(height: 8),
         Container(
@@ -282,4 +350,4 @@ class _SelectBirthYearScreenState extends State<SelectBirthYearScreen> {
       ],
     );
   }
-} 
+}

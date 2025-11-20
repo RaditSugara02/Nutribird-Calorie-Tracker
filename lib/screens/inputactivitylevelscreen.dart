@@ -10,8 +10,8 @@ class InputActivityLevelScreen extends StatefulWidget {
   final int birthYear;
   final double height;
   final double weight;
-  final String email;
-  final String password;
+  final String? email;
+  final String? password;
 
   const InputActivityLevelScreen({
     super.key,
@@ -22,8 +22,8 @@ class InputActivityLevelScreen extends StatefulWidget {
     required this.birthYear,
     required this.height,
     required this.weight,
-    required this.email,
-    required this.password,
+    this.email,
+    this.password,
   });
 
   @override
@@ -127,8 +127,8 @@ class _InputActivityLevelScreenState extends State<InputActivityLevelScreen> {
                           height: widget.height,
                           weight: widget.weight,
                           activityLevel: _selectedActivityLevel!,
-                          email: widget.email,
-                          password: widget.password,
+                          email: widget.email ?? '',
+                          password: widget.password ?? '',
                         ),
                       ),
                     );

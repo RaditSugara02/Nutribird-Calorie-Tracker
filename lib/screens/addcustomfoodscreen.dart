@@ -2,12 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_rpl_final/screens/dashboardscreen.dart'; // Import FoodEntry
 
 class AddCustomFoodScreen extends StatefulWidget {
-  final Function(String foodName, int calories, String mealType, double? protein, double? fat, double? carb) onFoodAdded;
+  final Function(
+    String foodName,
+    int calories,
+    String mealType,
+    double? protein,
+    double? fat,
+    double? carb,
+  )
+  onFoodAdded;
 
-  const AddCustomFoodScreen({
-    super.key,
-    required this.onFoodAdded,
-  });
+  const AddCustomFoodScreen({super.key, required this.onFoodAdded});
 
   @override
   State<AddCustomFoodScreen> createState() => _AddCustomFoodScreenState();
@@ -58,7 +63,11 @@ class _AddCustomFoodScreenState extends State<AddCustomFoodScreen> {
         ),
         title: Text(
           'Tambah Makanan Kustom',
-          style: TextStyle(color: lightGreenText, fontSize: 20, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: lightGreenText,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         centerTitle: true,
       ),
@@ -111,7 +120,7 @@ class _AddCustomFoodScreenState extends State<AddCustomFoodScreen> {
               ),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
-                value: _selectedMealType,
+                initialValue: _selectedMealType,
                 dropdownColor: darkGreenBg,
                 decoration: InputDecoration(
                   filled: true,
@@ -155,7 +164,7 @@ class _AddCustomFoodScreenState extends State<AddCustomFoodScreen> {
                 },
               ),
               const SizedBox(height: 20),
-              
+
               Text(
                 'Jumlah Kalori (kcal)',
                 style: TextStyle(fontSize: 16, color: lightGreenText),
@@ -226,7 +235,9 @@ class _AddCustomFoodScreenState extends State<AddCustomFoodScreen> {
                   errorStyle: TextStyle(color: Colors.redAccent),
                 ),
                 validator: (value) {
-                  if (value != null && value.isNotEmpty && double.tryParse(value) == null) {
+                  if (value != null &&
+                      value.isNotEmpty &&
+                      double.tryParse(value) == null) {
                     return 'Masukkan angka yang valid untuk protein';
                   }
                   return null;
@@ -264,7 +275,9 @@ class _AddCustomFoodScreenState extends State<AddCustomFoodScreen> {
                   errorStyle: TextStyle(color: Colors.redAccent),
                 ),
                 validator: (value) {
-                  if (value != null && value.isNotEmpty && double.tryParse(value) == null) {
+                  if (value != null &&
+                      value.isNotEmpty &&
+                      double.tryParse(value) == null) {
                     return 'Masukkan angka yang valid untuk lemak';
                   }
                   return null;
@@ -302,7 +315,9 @@ class _AddCustomFoodScreenState extends State<AddCustomFoodScreen> {
                   errorStyle: TextStyle(color: Colors.redAccent),
                 ),
                 validator: (value) {
-                  if (value != null && value.isNotEmpty && double.tryParse(value) == null) {
+                  if (value != null &&
+                      value.isNotEmpty &&
+                      double.tryParse(value) == null) {
                     return 'Masukkan angka yang valid untuk karbohidrat';
                   }
                   return null;
@@ -318,9 +333,13 @@ class _AddCustomFoodScreenState extends State<AddCustomFoodScreen> {
                       final String foodName = _foodNameController.text;
                       final int calories = int.parse(_calorieController.text);
                       final String mealType = _selectedMealType!;
-                      final double? protein = double.tryParse(_proteinController.text);
+                      final double? protein = double.tryParse(
+                        _proteinController.text,
+                      );
                       final double? fat = double.tryParse(_fatController.text);
-                      final double? carb = double.tryParse(_carbController.text);
+                      final double? carb = double.tryParse(
+                        _carbController.text,
+                      );
 
                       final newFoodEntry = FoodEntry(
                         foodName: foodName,
@@ -330,7 +349,10 @@ class _AddCustomFoodScreenState extends State<AddCustomFoodScreen> {
                         fat: fat,
                         carb: carb,
                       );
-                      Navigator.pop(context, newFoodEntry); // Mengembalikan FoodEntry
+                      Navigator.pop(
+                        context,
+                        newFoodEntry,
+                      ); // Mengembalikan FoodEntry
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -353,4 +375,4 @@ class _AddCustomFoodScreenState extends State<AddCustomFoodScreen> {
       ),
     );
   }
-} 
+}

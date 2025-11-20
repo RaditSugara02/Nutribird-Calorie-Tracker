@@ -11,8 +11,8 @@ class InputGoalScreen extends StatefulWidget {
   final double height;
   final double weight;
   final String activityLevel;
-  final String email;
-  final String password;
+  final String? email;
+  final String? password;
 
   const InputGoalScreen({
     super.key,
@@ -24,8 +24,8 @@ class InputGoalScreen extends StatefulWidget {
     required this.height,
     required this.weight,
     required this.activityLevel,
-    required this.email,
-    required this.password,
+    this.email,
+    this.password,
   });
 
   @override
@@ -129,8 +129,8 @@ class _InputGoalScreenState extends State<InputGoalScreen> {
                           weight: widget.weight,
                           activityLevel: widget.activityLevel,
                           goal: _selectedGoal!,
-                          email: widget.email,
-                          password: widget.password,
+                          email: widget.email ?? '',
+                          password: widget.password ?? '',
                         ),
                       ),
                     );

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_rpl_final/screens/welcomescreen_2.dart';
+import 'package:flutter_application_rpl_final/screens/inputnamescreen.dart';
 
 class WelcomeScreen1 extends StatelessWidget {
   const WelcomeScreen1({super.key});
@@ -27,7 +27,7 @@ class WelcomeScreen1 extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const WelcomeScreen2(),
+                        builder: (context) => const InputNameScreen(),
                       ),
                     );
                   },

@@ -4,10 +4,15 @@ import 'package:flutter_application_rpl_final/widgets/progress_bar.dart';
 
 class SelectGenderScreen extends StatefulWidget {
   final String name;
-  final String email;
-  final String password;
+  final String? email;
+  final String? password;
 
-  const SelectGenderScreen({super.key, required this.name, required this.email, required this.password});
+  const SelectGenderScreen({
+    super.key,
+    required this.name,
+    this.email,
+    this.password,
+  });
 
   @override
   State<SelectGenderScreen> createState() => _SelectGenderScreenState();
@@ -43,7 +48,9 @@ class _SelectGenderScreenState extends State<SelectGenderScreen> {
                   ),
                   Expanded(
                     child: Padding(
-                      padding: const EdgeInsets.only(right: 20.0), // Adjust padding as needed
+                      padding: const EdgeInsets.only(
+                        right: 20.0,
+                      ), // Adjust padding as needed
                       child: ProgressBar(currentStep: 2, totalSteps: 7),
                     ),
                   ),
@@ -69,17 +76,9 @@ class _SelectGenderScreenState extends State<SelectGenderScreen> {
               const SizedBox(height: 40),
               Column(
                 children: [
-                  _buildGenderOption(
-                    context,
-                    'Laki-laki',
-                    Icons.male,
-                  ),
+                  _buildGenderOption(context, 'Laki-laki', Icons.male),
                   const SizedBox(height: 20),
-                  _buildGenderOption(
-                    context,
-                    'Perempuan',
-                    Icons.female,
-                  ),
+                  _buildGenderOption(context, 'Perempuan', Icons.female),
                 ],
               ),
               const SizedBox(height: 40),
@@ -89,7 +88,9 @@ class _SelectGenderScreenState extends State<SelectGenderScreen> {
                   onPressed: () {
                     if (_selectedGender == null) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Mohon pilih jenis kelamin Anda')),
+                        const SnackBar(
+                          content: Text('Mohon pilih jenis kelamin Anda'),
+                        ),
                       );
                     } else {
                       Navigator.push(
@@ -98,8 +99,8 @@ class _SelectGenderScreenState extends State<SelectGenderScreen> {
                           builder: (context) => SelectBirthYearScreen(
                             name: widget.name,
                             gender: _selectedGender!,
-                            email: widget.email,
-                            password: widget.password,
+                            email: widget.email ?? '',
+                            password: widget.password ?? '',
                           ),
                         ),
                       );
@@ -126,11 +127,15 @@ class _SelectGenderScreenState extends State<SelectGenderScreen> {
     );
   }
 
-  Widget _buildGenderOption(BuildContext context, String gender, IconData icon) {
+  Widget _buildGenderOption(
+    BuildContext context,
+    String gender,
+    IconData icon,
+  ) {
     final Color darkGreenBg = const Color(0xFF1D362C);
     final Color lightGreenText = const Color(0xFFA2F46E);
     final Color darkText = const Color(0xFF112D21);
-    
+
     bool isSelected = _selectedGender == gender;
 
     return InkWell(
@@ -146,7 +151,9 @@ class _SelectGenderScreenState extends State<SelectGenderScreen> {
           color: isSelected ? lightGreenText : darkGreenBg,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: isSelected ? Colors.transparent : lightGreenText, // Border always lightGreenText if not selected
+            color: isSelected
+                ? Colors.transparent
+                : lightGreenText, // Border always lightGreenText if not selected
             width: 2,
           ),
         ),
@@ -161,14 +168,10 @@ class _SelectGenderScreenState extends State<SelectGenderScreen> {
                 color: isSelected ? darkText : lightGreenText,
               ),
             ),
-            Icon(
-              icon,
-              color: isSelected ? darkText : lightGreenText,
-              size: 30,
-            ),
+            Icon(icon, color: isSelected ? darkText : lightGreenText, size: 30),
           ],
         ),
       ),
     );
   }
-} 
+}

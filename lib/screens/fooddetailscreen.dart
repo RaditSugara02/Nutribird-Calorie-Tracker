@@ -7,10 +7,7 @@ import 'package:path_provider/path_provider.dart'; // Tambahkan ini
 class FoodDetailScreen extends StatefulWidget {
   final FoodEntry food;
 
-  const FoodDetailScreen({
-    super.key,
-    required this.food,
-  });
+  const FoodDetailScreen({super.key, required this.food});
 
   @override
   State<FoodDetailScreen> createState() => _FoodDetailScreenState();
@@ -22,14 +19,17 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
   final double _defaultServingSize = 100.0; // Gram per porsi default
   File? _imageFile; // Tambahkan ini untuk menyimpan gambar yang dipilih
   final ImagePicker _picker = ImagePicker(); // Tambahkan ini
-  String? _selectedMealType; // Tambahkan ini untuk menyimpan jenis makanan yang dipilih
+  String?
+  _selectedMealType; // Tambahkan ini untuk menyimpan jenis makanan yang dipilih
 
   @override
   void initState() {
     super.initState();
     // Set default quantity to default serving size
     _quantityController.text = _defaultServingSize.toStringAsFixed(0);
-    print('FoodDetailScreen: Initialized with food: ${widget.food.foodName}, calories: ${widget.food.calories}');
+    print(
+      'FoodDetailScreen: Initialized with food: ${widget.food.foodName}, calories: ${widget.food.calories}',
+    );
     if (widget.food.imagePath != null && widget.food.imagePath!.isNotEmpty) {
       _imageFile = File(widget.food.imagePath!);
     }
@@ -42,12 +42,17 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
   }
 
   Future<void> _pickImage() async {
-    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    final XFile? pickedFile = await _picker.pickImage(
+      source: ImageSource.gallery,
+    );
 
     if (pickedFile != null) {
       final appDocDir = await getApplicationDocumentsDirectory();
-      final String uniqueFileName = '${DateTime.now().millisecondsSinceEpoch}_${pickedFile.name.split('.').last}';
-      final File newImage = await File(pickedFile.path).copy('${appDocDir.path}/$uniqueFileName');
+      final String uniqueFileName =
+          '${DateTime.now().millisecondsSinceEpoch}_${pickedFile.name.split('.').last}';
+      final File newImage = await File(
+        pickedFile.path,
+      ).copy('${appDocDir.path}/$uniqueFileName');
 
       setState(() {
         _imageFile = newImage;
@@ -60,7 +65,8 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
   // Fungsi untuk menghitung ulang makronutrien berdasarkan kuantitas yang dimasukkan
   FoodEntry _calculateAdjustedFood() {
     double quantity = double.tryParse(_quantityController.text) ?? 0.0;
-    if (quantity == 0) return widget.food; // Return original if quantity is 0 or invalid
+    if (quantity == 0)
+      return widget.food; // Return original if quantity is 0 or invalid
 
     double ratio;
     if (_selectedUnit == 'gram') {
@@ -71,7 +77,8 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
     } else {
       // Jika unit adalah porsi, asumsikan 1 porsi = _defaultServingSize gram
       // Jadi, kuantitas adalah jumlah porsi
-      ratio = quantity; // Jika kuantitas adalah porsi, maka rasio langsung jumlah porsi
+      ratio =
+          quantity; // Jika kuantitas adalah porsi, maka rasio langsung jumlah porsi
     }
 
     return FoodEntry(
@@ -105,7 +112,11 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
         ),
         title: Text(
           widget.food.foodName,
-          style: TextStyle(color: lightGreenText, fontSize: 20, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: lightGreenText,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         centerTitle: true,
       ),
@@ -116,7 +127,11 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
           children: [
             Text(
               'Detail Makanan',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: lightGreenText),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: lightGreenText,
+              ),
             ),
             const SizedBox(height: 16),
             // Area untuk menampilkan gambar
@@ -128,42 +143,53 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                 decoration: BoxDecoration(
                   color: lightGreenText.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: lightGreenText.withOpacity(0.5), width: 1),
+                  border: Border.all(
+                    color: lightGreenText.withOpacity(0.5),
+                    width: 1,
+                  ),
                 ),
                 child: _imageFile != null
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(10),
-                        child: Image.file(
-                          _imageFile!,
-                          fit: BoxFit.cover,
-                        ),
+                        child: Image.file(_imageFile!, fit: BoxFit.cover),
                       )
-                    : (widget.food.imagePath != null && widget.food.imagePath!.isNotEmpty
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: Image.file(
-                              File(widget.food.imagePath!),
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return const Center(
-                                  child: Icon(Icons.broken_image, color: Colors.grey, size: 50),
-                                );
-                              },
-                            ),
-                          )
-                        : Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.add_a_photo, color: lightGreenText, size: 50),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Ketuk untuk Tambah Gambar',
-                                  style: TextStyle(color: lightGreenText.withOpacity(0.7)),
-                                ),
-                              ],
-                            ),
-                          )),
+                    : (widget.food.imagePath != null &&
+                              widget.food.imagePath!.isNotEmpty
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Image.file(
+                                File(widget.food.imagePath!),
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return const Center(
+                                    child: Icon(
+                                      Icons.broken_image,
+                                      color: Colors.grey,
+                                      size: 50,
+                                    ),
+                                  );
+                                },
+                              ),
+                            )
+                          : Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.add_a_photo,
+                                    color: lightGreenText,
+                                    size: 50,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Ketuk untuk Tambah Gambar',
+                                    style: TextStyle(
+                                      color: lightGreenText.withOpacity(0.7),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )),
               ),
             ),
             const SizedBox(height: 16),
@@ -172,7 +198,10 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
               elevation: 0,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
-                side: BorderSide(color: lightGreenText.withOpacity(0.5), width: 1),
+                side: BorderSide(
+                  color: lightGreenText.withOpacity(0.5),
+                  width: 1,
+                ),
               ),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -217,9 +246,24 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                     ),
                     Divider(color: lightGreenText, thickness: 1),
                     const SizedBox(height: 8),
-                    _buildNutrientRow('Protein', widget.food.protein, 'g', lightGreenText),
-                    _buildNutrientRow('Lemak', widget.food.fat, 'g', lightGreenText),
-                    _buildNutrientRow('Karbohidrat', widget.food.carb, 'g', lightGreenText),
+                    _buildNutrientRow(
+                      'Protein',
+                      widget.food.protein,
+                      'g',
+                      lightGreenText,
+                    ),
+                    _buildNutrientRow(
+                      'Lemak',
+                      widget.food.fat,
+                      'g',
+                      lightGreenText,
+                    ),
+                    _buildNutrientRow(
+                      'Karbohidrat',
+                      widget.food.carb,
+                      'g',
+                      lightGreenText,
+                    ),
                     const SizedBox(height: 20),
                   ],
                 ),
@@ -241,9 +285,13 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                     keyboardType: TextInputType.number,
                     decoration: InputDecoration(
                       labelText: 'Jumlah',
-                      labelStyle: TextStyle(color: lightGreenText.withOpacity(0.8)),
+                      labelStyle: TextStyle(
+                        color: lightGreenText.withOpacity(0.8),
+                      ),
                       hintText: 'Contoh: 100',
-                      hintStyle: TextStyle(color: lightGreenText.withOpacity(0.6)),
+                      hintStyle: TextStyle(
+                        color: lightGreenText.withOpacity(0.6),
+                      ),
                       filled: true,
                       fillColor: darkGreenBg,
                       border: OutlineInputBorder(
@@ -256,17 +304,24 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(color: lightGreenText, width: 2.0),
+                        borderSide: BorderSide(
+                          color: lightGreenText,
+                          width: 2.0,
+                        ),
                       ),
                       errorStyle: TextStyle(color: Colors.redAccent),
-                      contentPadding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 12.0,
+                        horizontal: 16.0,
+                      ),
                       isDense: true,
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Jumlah tidak boleh kosong';
                       }
-                      if (double.tryParse(value) == null || double.parse(value) <= 0) {
+                      if (double.tryParse(value) == null ||
+                          double.parse(value) <= 0) {
                         return 'Masukkan angka yang valid (> 0)';
                       }
                       return null;
@@ -276,11 +331,13 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: DropdownButtonFormField<String>(
-                    value: _selectedUnit,
+                    initialValue: _selectedUnit,
                     dropdownColor: darkGreenBg,
                     decoration: InputDecoration(
                       labelText: 'Satuan',
-                      labelStyle: TextStyle(color: lightGreenText.withOpacity(0.8)),
+                      labelStyle: TextStyle(
+                        color: lightGreenText.withOpacity(0.8),
+                      ),
                       filled: true,
                       fillColor: darkGreenBg,
                       border: OutlineInputBorder(
@@ -293,11 +350,19 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(color: lightGreenText, width: 2.0),
+                        borderSide: BorderSide(
+                          color: lightGreenText,
+                          width: 2.0,
+                        ),
                       ),
-                      hintStyle: TextStyle(color: lightGreenText.withOpacity(0.6)),
+                      hintStyle: TextStyle(
+                        color: lightGreenText.withOpacity(0.6),
+                      ),
                       errorStyle: TextStyle(color: Colors.redAccent),
-                      contentPadding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 12.0,
+                        horizontal: 16.0,
+                      ),
                       isDense: true,
                     ),
                     icon: Icon(Icons.arrow_drop_down, color: lightGreenText),
@@ -315,10 +380,14 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                       setState(() {
                         _selectedUnit = newValue!;
                         // Sesuaikan nilai controller jika unit berubah
-                        if (_selectedUnit == 'porsi' && double.tryParse(_quantityController.text) == _defaultServingSize) {
+                        if (_selectedUnit == 'porsi' &&
+                            double.tryParse(_quantityController.text) ==
+                                _defaultServingSize) {
                           _quantityController.text = '1'; // Default 1 porsi
-                        } else if (_selectedUnit == 'gram' && double.tryParse(_quantityController.text) == 1) {
-                          _quantityController.text = _defaultServingSize.toStringAsFixed(0); // Default ke gram per porsi
+                        } else if (_selectedUnit == 'gram' &&
+                            double.tryParse(_quantityController.text) == 1) {
+                          _quantityController.text = _defaultServingSize
+                              .toStringAsFixed(0); // Default ke gram per porsi
                         }
                       });
                     },
@@ -333,7 +402,11 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
             ),
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
-              value: _selectedMealType ?? widget.food.mealType, // Gunakan nilai dari FoodEntry jika tidak ada yang dipilih
+              initialValue:
+                  _selectedMealType ??
+                  widget
+                      .food
+                      .mealType, // Gunakan nilai dari FoodEntry jika tidak ada yang dipilih
               dropdownColor: darkGreenBg,
               decoration: InputDecoration(
                 filled: true,
@@ -352,19 +425,28 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                 ),
                 hintStyle: TextStyle(color: lightGreenText.withOpacity(0.6)),
                 errorStyle: TextStyle(color: Colors.redAccent),
-                contentPadding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
+                contentPadding: const EdgeInsets.symmetric(
+                  vertical: 12.0,
+                  horizontal: 16.0,
+                ),
               ),
               icon: Icon(Icons.arrow_drop_down, color: lightGreenText),
               style: TextStyle(color: lightGreenText, fontSize: 16),
-              items: <String>['Sarapan', 'Makan Siang', 'Makan Malam', 'Cemilan'].map((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(
-                    value,
-                    style: TextStyle(color: lightGreenText),
-                  ),
-                );
-              }).toList(),
+              items:
+                  <String>[
+                    'Sarapan',
+                    'Makan Siang',
+                    'Makan Malam',
+                    'Cemilan',
+                  ].map((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(
+                        value,
+                        style: TextStyle(color: lightGreenText),
+                      ),
+                    );
+                  }).toList(),
               onChanged: (String? newValue) {
                 setState(() {
                   _selectedMealType = newValue!;
@@ -376,13 +458,19 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  if (_quantityController.text.isNotEmpty && double.tryParse(_quantityController.text)! > 0) {
+                  if (_quantityController.text.isNotEmpty &&
+                      double.tryParse(_quantityController.text)! > 0) {
                     final adjustedFood = _calculateAdjustedFood();
-                    Navigator.pop(context, adjustedFood); // Kembali dengan FoodEntry yang disesuaikan
+                    Navigator.pop(
+                      context,
+                      adjustedFood,
+                    ); // Kembali dengan FoodEntry yang disesuaikan
                   } else {
                     // Tampilkan pesan error jika kuantitas tidak valid
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Masukkan jumlah yang valid.')),
+                      const SnackBar(
+                        content: Text('Masukkan jumlah yang valid.'),
+                      ),
                     );
                   }
                 },
@@ -406,14 +494,16 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
     );
   }
 
-  Widget _buildNutrientRow(String nutrientName, double? nutrientValue, String unit, Color textColor) {
+  Widget _buildNutrientRow(
+    String nutrientName,
+    double? nutrientValue,
+    String unit,
+    Color textColor,
+  ) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          nutrientName,
-          style: TextStyle(fontSize: 16, color: textColor),
-        ),
+        Text(nutrientName, style: TextStyle(fontSize: 16, color: textColor)),
         Text(
           '${nutrientValue ?? 0}$unit',
           style: TextStyle(fontSize: 16, color: textColor),
@@ -421,4 +511,4 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
       ],
     );
   }
-} 
+}

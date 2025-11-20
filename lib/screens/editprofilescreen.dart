@@ -87,7 +87,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ),
         title: Text(
           'Ubah Informasi Pribadi',
-          style: TextStyle(color: lightGreenText, fontSize: 20, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: lightGreenText,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         centerTitle: true,
       ),
@@ -103,24 +107,37 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildTextField('Nama Lengkap', _nameController, keyboardType: TextInputType.text),
-                  const SizedBox(height: 16),
-                  _buildDropdownField(
-                    'Gender',
-                    _genders,
-                    _selectedGender,
-                    (String? newValue) {
-                      setState(() {
-                        _selectedGender = newValue;
-                      });
-                    },
+                  _buildTextField(
+                    'Nama Lengkap',
+                    _nameController,
+                    keyboardType: TextInputType.text,
                   ),
                   const SizedBox(height: 16),
-                  _buildTextField('Tahun Lahir', _birthYearController, keyboardType: TextInputType.number),
+                  _buildDropdownField('Gender', _genders, _selectedGender, (
+                    String? newValue,
+                  ) {
+                    setState(() {
+                      _selectedGender = newValue;
+                    });
+                  }),
                   const SizedBox(height: 16),
-                  _buildTextField('Tinggi Badan (cm)', _heightController, keyboardType: TextInputType.number),
+                  _buildTextField(
+                    'Tahun Lahir',
+                    _birthYearController,
+                    keyboardType: TextInputType.number,
+                  ),
                   const SizedBox(height: 16),
-                  _buildTextField('Berat Badan (kg)', _weightController, keyboardType: TextInputType.number),
+                  _buildTextField(
+                    'Tinggi Badan (cm)',
+                    _heightController,
+                    keyboardType: TextInputType.number,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildTextField(
+                    'Berat Badan (kg)',
+                    _weightController,
+                    keyboardType: TextInputType.number,
+                  ),
                   const SizedBox(height: 16),
                   _buildDropdownField(
                     'Tingkat Aktivitas',
@@ -133,16 +150,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     },
                   ),
                   const SizedBox(height: 16),
-                  _buildDropdownField(
-                    'Tujuan',
-                    _goals,
-                    _selectedGoal,
-                    (String? newValue) {
-                      setState(() {
-                        _selectedGoal = newValue;
-                      });
-                    },
-                  ),
+                  _buildDropdownField('Tujuan', _goals, _selectedGoal, (
+                    String? newValue,
+                  ) {
+                    setState(() {
+                      _selectedGoal = newValue;
+                    });
+                  }),
                   const SizedBox(height: 30),
                   SizedBox(
                     width: double.infinity,
@@ -160,7 +174,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ),
                       child: const Text(
                         'Simpan Perubahan',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
@@ -170,7 +187,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller, {TextInputType keyboardType = TextInputType.text}) {
+  Widget _buildTextField(
+    String label,
+    TextEditingController controller, {
+    TextInputType keyboardType = TextInputType.text,
+  }) {
     final Color darkGreenBg = const Color(0xFF1D362C);
     final Color lightGreenText = const Color(0xFFA2F46E);
 
@@ -195,12 +216,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  Widget _buildDropdownField(String label, List<String> items, String? selectedValue, ValueChanged<String?> onChanged) {
+  Widget _buildDropdownField(
+    String label,
+    List<String> items,
+    String? selectedValue,
+    ValueChanged<String?> onChanged,
+  ) {
     final Color darkGreenBg = const Color(0xFF1D362C);
     final Color lightGreenText = const Color(0xFFA2F46E);
 
     return DropdownButtonFormField<String>(
-      value: selectedValue,
+      initialValue: selectedValue,
       decoration: InputDecoration(
         labelText: label,
         labelStyle: TextStyle(color: lightGreenText.withOpacity(0.7)),
@@ -220,18 +246,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       items: items.map<DropdownMenuItem<String>>((String value) {
         return DropdownMenuItem<String>(
           value: value,
-          child: Text(
-            value,
-            overflow: TextOverflow.ellipsis,
-            maxLines: 1,
-          ),
+          child: Text(value, overflow: TextOverflow.ellipsis, maxLines: 1),
         );
       }).toList(),
       onChanged: onChanged,
     );
   }
 
-  Map<String, dynamic> _calculateDailyCaloriesAndMacros(Map<String, dynamic> profileData) {
+  Map<String, dynamic> _calculateDailyCaloriesAndMacros(
+    Map<String, dynamic> profileData,
+  ) {
     final String gender = profileData['gender'] ?? '';
     final double height = profileData['height'] ?? 0.0;
     final double weight = profileData['weight'] ?? 0.0;
@@ -322,42 +346,60 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     // Selalu hitung ulang kalori dan makro berdasarkan data baru
     final recalculatedMacros = _calculateDailyCaloriesAndMacros(newProfileData);
-    print('EditProfileScreen: Recalculated Macros: $recalculatedMacros'); // Debug log
+    print(
+      'EditProfileScreen: Recalculated Macros: $recalculatedMacros',
+    ); // Debug log
     newProfileData.addAll(recalculatedMacros);
-    print('EditProfileScreen: New Profile Data (before saving): $newProfileData'); // Debug log
+    print(
+      'EditProfileScreen: New Profile Data (before saving): $newProfileData',
+    ); // Debug log
 
     bool showRecalculateWarning = false;
     if (_userProfileData != null) {
       if (newProfileData['height'] != _userProfileData!['height'] ||
           newProfileData['weight'] != _userProfileData!['weight'] ||
-          newProfileData['activityLevel'] != _userProfileData!['activityLevel'] ||
+          newProfileData['activityLevel'] !=
+              _userProfileData!['activityLevel'] ||
           newProfileData['goal'] != _userProfileData!['goal'] ||
           newProfileData['gender'] != _userProfileData!['gender'] ||
-          newProfileData['birthYear'] != _userProfileData!['birthYear']
-          ) {
+          newProfileData['birthYear'] != _userProfileData!['birthYear']) {
         showRecalculateWarning = true;
       }
     }
 
     if (showRecalculateWarning) {
-      final bool confirm = await showDialog(
+      final bool confirm =
+          await showDialog(
             context: context,
             builder: (BuildContext context) {
               return AlertDialog(
                 backgroundColor: const Color(0xFF1D362C),
-                title: Text('Konfirmasi Perubahan', style: TextStyle(color: const Color(0xFFA2F46E))),
+                title: Text(
+                  'Konfirmasi Perubahan',
+                  style: TextStyle(color: const Color(0xFFA2F46E)),
+                ),
                 content: Text(
                   'Perubahan ini akan mempengaruhi rencana kalori & makro harian Anda. Lanjutkan?',
-                  style: TextStyle(color: const Color(0xFFA2F46E).withOpacity(0.8)),
+                  style: TextStyle(
+                    color: const Color(0xFFA2F46E).withOpacity(0.8),
+                  ),
                 ),
                 actions: <Widget>[
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(false),
-                    child: Text('Tidak', style: TextStyle(color: const Color(0xFFA2F46E).withOpacity(0.7))),
+                    child: Text(
+                      'Tidak',
+                      style: TextStyle(
+                        color: const Color(0xFFA2F46E).withOpacity(0.7),
+                      ),
+                    ),
                   ),
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(true),
-                    child: Text('Ya', style: TextStyle(color: const Color(0xFFA2F46E))),
+                    child: Text(
+                      'Ya',
+                      style: TextStyle(color: const Color(0xFFA2F46E)),
+                    ),
                   ),
                 ],
               );

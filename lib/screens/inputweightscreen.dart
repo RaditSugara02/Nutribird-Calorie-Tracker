@@ -9,8 +9,8 @@ class InputWeightScreen extends StatefulWidget {
   final int birthMonth;
   final int birthYear;
   final double height;
-  final String email;
-  final String password;
+  final String? email;
+  final String? password;
 
   const InputWeightScreen({
     super.key,
@@ -20,8 +20,8 @@ class InputWeightScreen extends StatefulWidget {
     required this.birthMonth,
     required this.birthYear,
     required this.height,
-    required this.email,
-    required this.password,
+    this.email,
+    this.password,
   });
 
   @override
@@ -150,8 +150,8 @@ class _InputWeightScreenState extends State<InputWeightScreen> {
                             birthYear: widget.birthYear,
                             height: widget.height,
                             weight: double.parse(_weightController.text),
-                            email: widget.email,
-                            password: widget.password,
+                            email: widget.email ?? '',
+                            password: widget.password ?? '',
                           ),
                         ),
                       );
