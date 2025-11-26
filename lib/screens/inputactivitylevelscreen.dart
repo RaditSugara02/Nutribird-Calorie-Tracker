@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_rpl_final/screens/inputgoalscreen.dart';
 import 'package:flutter_application_rpl_final/widgets/progress_bar.dart';
 import 'package:flutter_application_rpl_final/widgets/sound_helper.dart';
+import 'package:flutter_application_rpl_final/widgets/custom_page_route.dart';
 
 class InputActivityLevelScreen extends StatefulWidget {
   final String name;
@@ -67,7 +68,6 @@ class _InputActivityLevelScreenState extends State<InputActivityLevelScreen> {
                 IconButton(
                   icon: Icon(Icons.arrow_back_ios, color: lightGreenText),
                   onPressed: () async {
-                    await SoundHelper.playTransition();
                     if (mounted) {
                       Navigator.pop(context);
                     }
@@ -129,12 +129,11 @@ class _InputActivityLevelScreenState extends State<InputActivityLevelScreen> {
                       ),
                     );
                   } else {
-                    await SoundHelper.playTransition();
                     if (mounted) {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
-                          builder: (context) => InputGoalScreen(
+                        CustomPageRoute(
+                          child: InputGoalScreen(
                             name: widget.name,
                             gender: widget.gender,
                             birthDay: widget.birthDay,
@@ -144,6 +143,7 @@ class _InputActivityLevelScreenState extends State<InputActivityLevelScreen> {
                             weight: widget.weight,
                             activityLevel: _selectedActivityLevel!,
                           ),
+                          backgroundColor: const Color(0xFF1D362C),
                         ),
                       );
                     }

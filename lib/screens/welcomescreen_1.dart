@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_rpl_final/screens/inputnamescreen.dart';
-import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter_application_rpl_final/widgets/custom_page_route.dart';
 
 class WelcomeScreen1 extends StatefulWidget {
   const WelcomeScreen1({super.key});
@@ -10,22 +10,6 @@ class WelcomeScreen1 extends StatefulWidget {
 }
 
 class _WelcomeScreen1State extends State<WelcomeScreen1> {
-  final AudioPlayer _audioPlayer = AudioPlayer();
-
-  @override
-  void dispose() {
-    _audioPlayer.dispose();
-    super.dispose();
-  }
-
-  // Fungsi untuk memutar suara transisi
-  Future<void> _playTransitionSound() async {
-    try {
-      await _audioPlayer.play(AssetSource('transition.wav'));
-    } catch (e) {
-      print('Error playing transition sound: $e');
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,12 +33,12 @@ class _WelcomeScreen1State extends State<WelcomeScreen1> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () async {
-                    await _playTransitionSound();
                     if (mounted) {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
-                          builder: (context) => const InputNameScreen(),
+                        CustomPageRoute(
+                          child: const InputNameScreen(),
+                          backgroundColor: const Color(0xFF1D362C),
                         ),
                       );
                     }

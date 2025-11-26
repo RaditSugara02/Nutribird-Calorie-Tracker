@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_rpl_final/screens/selectgenderscreen.dart';
 import 'package:flutter_application_rpl_final/widgets/progress_bar.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter_application_rpl_final/widgets/custom_page_route.dart';
 
 class InputNameScreen extends StatefulWidget {
   const InputNameScreen({super.key});
@@ -31,14 +32,6 @@ class _InputNameScreenState extends State<InputNameScreen> {
     }
   }
 
-  // Fungsi untuk memutar suara transisi
-  Future<void> _playTransitionSound() async {
-    try {
-      await _audioPlayer.play(AssetSource('transition.wav'));
-    } catch (e) {
-      print('Error playing transition sound: $e');
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,7 +54,6 @@ class _InputNameScreenState extends State<InputNameScreen> {
                   IconButton(
                     icon: Icon(Icons.arrow_back_ios, color: lightGreenText),
                     onPressed: () async {
-                      await _playTransitionSound();
                       if (mounted) {
                         Navigator.pop(context);
                       }
@@ -138,13 +130,12 @@ class _InputNameScreenState extends State<InputNameScreen> {
                 child: ElevatedButton(
                   onPressed: () async {
                     if (_formKey.currentState!.validate()) {
-                      await _playTransitionSound();
                       if (mounted) {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                SelectGenderScreen(name: _nameController.text),
+                          CustomPageRoute(
+                            child: SelectGenderScreen(name: _nameController.text),
+                            backgroundColor: const Color(0xFF1D362C),
                           ),
                         );
                       }

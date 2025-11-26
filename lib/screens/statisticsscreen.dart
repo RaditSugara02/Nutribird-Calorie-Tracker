@@ -4,7 +4,7 @@ import 'package:flutter_application_rpl_final/screens/addweightscreen.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-import 'package:flutter_application_rpl_final/widgets/sound_helper.dart';
+import 'package:flutter_application_rpl_final/widgets/custom_page_route.dart';
 
 class StatisticsScreen extends StatefulWidget {
   final List<WeightEntry> weightEntries;
@@ -17,6 +17,9 @@ class StatisticsScreen extends StatefulWidget {
 
 class StatisticsScreenState extends State<StatisticsScreen> {
   late List<WeightEntry> _entries;
+
+  // Flag untuk mencegah multiple navigation
+  bool _isNavigating = false;
 
   @override
   void initState() {
@@ -114,15 +117,33 @@ class StatisticsScreenState extends State<StatisticsScreen> {
                       bottomTitles: AxisTitles(
                         sideTitles: SideTitles(
                           showTitles: true,
-                          reservedSize: 30,
+                          reservedSize: 35,
+                          interval: 1, // Tampilkan setiap titik data
                           getTitlesWidget: (value, TitleMeta meta) {
-                            if (value.toInt() < widget.weightEntries.length) {
-                              final entry = sortedEntries[value.toInt()];
+                            final int index = value.toInt();
+                            if (index >= 0 && index < sortedEntries.length) {
+                              final entry = sortedEntries[index];
+                              // Format: DD/MM atau DD/MM/YY jika tahun berbeda
+                              String dateText;
+                              if (sortedEntries.length > 1) {
+                                final firstYear = sortedEntries.first.date.year;
+                                final lastYear = sortedEntries.last.date.year;
+                                if (firstYear == lastYear) {
+                                  // Tahun sama, cukup DD/MM
+                                  dateText = '${entry.date.day}/${entry.date.month}';
+                                } else {
+                                  // Tahun berbeda, tambahkan 2 digit tahun terakhir
+                                  dateText = '${entry.date.day}/${entry.date.month}/${entry.date.year.toString().substring(2)}';
+                                }
+                              } else {
+                                dateText = '${entry.date.day}/${entry.date.month}';
+                              }
+                              
                               return SideTitleWidget(
                                 axisSide: meta.axisSide,
                                 space: 8.0,
                                 child: Text(
-                                  '${entry.date.day}/${entry.date.month}',
+                                  dateText,
                                   style: TextStyle(
                                     color: lightGreenText,
                                     fontSize: 10,
@@ -201,18 +222,25 @@ class StatisticsScreenState extends State<StatisticsScreen> {
                   ),
                   IconButton(
                     onPressed: () async {
-                      await SoundHelper.playTransition();
-                      if (!mounted) return;
+                      if (_isNavigating) return;
+                      _isNavigating = true;
+                      if (!mounted) {
+                        _isNavigating = false;
+                        return;
+                      }
                       await Navigator.push(
                         context,
-                        MaterialPageRoute(
-                          builder: (context) => AddWeightScreen(
+                        CustomPageRoute(
+                          child: AddWeightScreen(
                             onWeightAdded: (weight) {
                               _addWeight(weight);
                             },
                           ),
+                          backgroundColor: const Color(0xFF1D362C),
                         ),
-                      );
+                      ).then((_) {
+                        _isNavigating = false;
+                      });
                       // Refresh data setelah kembali dari AddWeightScreen
                       if (mounted) {
                         await _loadWeightEntries();
@@ -321,7 +349,6 @@ class StatisticsScreenState extends State<StatisticsScreen> {
           actions: [
             TextButton(
               onPressed: () async {
-                await SoundHelper.playTransition();
                 if (mounted) {
                   Navigator.pop(context);
                 }
@@ -334,10 +361,26 @@ class StatisticsScreenState extends State<StatisticsScreen> {
             TextButton(
               onPressed: () async {
                 final newWeight = double.tryParse(controller.text);
-                if (newWeight != null && newWeight > 0) {
-                  await SoundHelper.playTransition();
+                if (newWeight != null && newWeight >= 20 && newWeight <= 200) {
                   if (mounted) {
                     Navigator.pop(context, newWeight);
+                  }
+                } else {
+                  // Tampilkan pesan error jika berat badan tidak valid
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          newWeight == null
+                              ? 'Masukkan angka yang valid'
+                              : newWeight < 20
+                                  ? 'Berat badan minimal 20 kg'
+                                  : 'Berat badan maksimal 200 kg',
+                        ),
+                        backgroundColor: Colors.redAccent,
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
                   }
                 }
               },
@@ -359,7 +402,39 @@ class StatisticsScreenState extends State<StatisticsScreen> {
     }
   }
 
+  /// Mengecek apakah sudah ada entri berat badan untuk hari ini
+  bool _hasWeightEntryForToday() {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    
+    return _entries.any((entry) {
+      final entryDate = DateTime(entry.date.year, entry.date.month, entry.date.day);
+      return entryDate.isAtSameMomentAs(today);
+    });
+  }
+
   Future<void> _addWeight(double weight) async {
+    // Cek apakah sudah ada entri untuk hari ini
+    if (_hasWeightEntryForToday()) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text(
+              'Anda sudah mencatat berat badan hari ini. Anda dapat mencatat lagi besok.',
+            ),
+            backgroundColor: Colors.orangeAccent,
+            duration: const Duration(seconds: 3),
+            action: SnackBarAction(
+              label: 'OK',
+              textColor: Colors.white,
+              onPressed: () {},
+            ),
+          ),
+        );
+      }
+      return;
+    }
+
     final newEntry = WeightEntry(weight: weight, date: DateTime.now());
 
     // Tambahkan ke entries dan simpan

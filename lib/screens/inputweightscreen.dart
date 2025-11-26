@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_rpl_final/screens/inputactivitylevelscreen.dart';
 import 'package:flutter_application_rpl_final/widgets/progress_bar.dart';
 import 'package:audioplayers/audioplayers.dart';
-import 'package:flutter_application_rpl_final/widgets/sound_helper.dart';
+import 'package:flutter_application_rpl_final/widgets/custom_page_route.dart';
 
 class InputWeightScreen extends StatefulWidget {
   final String name;
@@ -68,7 +68,6 @@ class _InputWeightScreenState extends State<InputWeightScreen> {
                   IconButton(
                     icon: Icon(Icons.arrow_back_ios, color: lightGreenText),
                     onPressed: () async {
-                      await SoundHelper.playTransition();
                       if (mounted) {
                         Navigator.pop(context);
                       }
@@ -143,9 +142,13 @@ class _InputWeightScreenState extends State<InputWeightScreen> {
                     _playErrorSound();
                     return 'Masukkan angka yang valid';
                   }
-                  if (weight < 1 || weight > 600) {
+                  if (weight < 20) {
                     _playErrorSound();
-                    return 'Berat badan harus antara 1 kg dan 600 kg';
+                    return 'Berat badan minimal 20 kg';
+                  }
+                  if (weight > 200) {
+                    _playErrorSound();
+                    return 'Berat badan maksimal 200 kg';
                   }
                   return null;
                 },
@@ -156,12 +159,11 @@ class _InputWeightScreenState extends State<InputWeightScreen> {
                 child: ElevatedButton(
                   onPressed: () async {
                     if (_formKey.currentState!.validate()) {
-                      await SoundHelper.playTransition();
                       if (mounted) {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(
-                            builder: (context) => InputActivityLevelScreen(
+                          CustomPageRoute(
+                            child: InputActivityLevelScreen(
                               name: widget.name,
                               gender: widget.gender,
                               birthDay: widget.birthDay,
@@ -170,6 +172,7 @@ class _InputWeightScreenState extends State<InputWeightScreen> {
                               height: widget.height,
                               weight: double.parse(_weightController.text),
                             ),
+                            backgroundColor: const Color(0xFF1D362C),
                           ),
                         );
                       }

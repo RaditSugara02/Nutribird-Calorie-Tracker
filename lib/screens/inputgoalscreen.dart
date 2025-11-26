@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_rpl_final/screens/loadingscreen.dart';
 import 'package:flutter_application_rpl_final/widgets/progress_bar.dart';
 import 'package:flutter_application_rpl_final/widgets/sound_helper.dart';
+import 'package:flutter_application_rpl_final/widgets/custom_page_route.dart';
 
 class InputGoalScreen extends StatefulWidget {
   final String name;
@@ -59,7 +60,6 @@ class _InputGoalScreenState extends State<InputGoalScreen> {
                 IconButton(
                   icon: Icon(Icons.arrow_back_ios, color: lightGreenText),
                   onPressed: () async {
-                    await SoundHelper.playTransition();
                     if (mounted) {
                       Navigator.pop(context);
                     }
@@ -115,12 +115,11 @@ class _InputGoalScreenState extends State<InputGoalScreen> {
                       const SnackBar(content: Text('Mohon pilih tujuan Anda')),
                     );
                   } else {
-                    await SoundHelper.playTransition();
                     if (mounted) {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
-                          builder: (context) => LoadingScreen(
+                        CustomPageRoute(
+                          child: LoadingScreen(
                             name: widget.name,
                             gender: widget.gender,
                             birthDay: widget.birthDay,
@@ -131,6 +130,7 @@ class _InputGoalScreenState extends State<InputGoalScreen> {
                             activityLevel: widget.activityLevel,
                             goal: _selectedGoal!,
                           ),
+                          backgroundColor: const Color(0xFF1D362C),
                         ),
                       );
                     }

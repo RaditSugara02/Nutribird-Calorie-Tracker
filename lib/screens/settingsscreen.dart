@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_application_rpl_final/widgets/sound_helper.dart';
+import 'package:flutter_application_rpl_final/widgets/custom_page_route.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -21,11 +22,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     print('User data cleared and logged out.');
 
     // Navigasi ke WelcomeScreen1 dan hapus semua rute sebelumnya
-    await SoundHelper.playTransition();
     if (mounted) {
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => const WelcomeScreen1()),
+        CustomPageRoute(
+          child: const WelcomeScreen1(),
+          backgroundColor: Colors.transparent,
+        ),
         (Route<dynamic> route) => false,
       );
     }
@@ -154,11 +157,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
         print('Data berhasil diimpor.');
 
         // Restart aplikasi (atau navigasi ulang ke WelcomeScreen untuk memuat ulang data)
-        await SoundHelper.playTransition();
         if (mounted) {
           Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (context) => const WelcomeScreen1()),
+            CustomPageRoute(
+              child: const WelcomeScreen1(),
+              backgroundColor: Colors.transparent,
+            ),
             (Route<dynamic> route) => false,
           );
         }
@@ -196,7 +201,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios, color: lightGreenText),
           onPressed: () async {
-            await SoundHelper.playTransition();
             if (mounted) {
               Navigator.pop(context);
             }
@@ -312,27 +316,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 child: const Text(
                   'Hapus Semua Data Aplikasi',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            // Tombol Logout
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _logout,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  backgroundColor:
-                      Colors.redAccent, // Warna merah untuk tombol logout
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                ),
-                child: const Text(
-                  'Logout',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ),

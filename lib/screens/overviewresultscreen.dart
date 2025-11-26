@@ -4,6 +4,7 @@ import 'package:flutter_application_rpl_final/screens/inputnamescreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:flutter_application_rpl_final/widgets/sound_helper.dart';
+import 'package:flutter_application_rpl_final/widgets/custom_page_route.dart';
 
 class OverviewResultScreen extends StatelessWidget {
   final String name;
@@ -395,11 +396,11 @@ class OverviewResultScreen extends StatelessWidget {
                 onPressed: () async {
                   // Pastikan data profil telah disimpan sebelum navigasi
                   await _saveUserProfile();
-                  await SoundHelper.playTransition();
                   Navigator.pushAndRemoveUntil(
                     context,
-                    MaterialPageRoute(
-                      builder: (context) => const DashboardScreen(),
+                    CustomPageRoute(
+                      child: const DashboardScreen(),
+                      backgroundColor: const Color(0xFF1D362C),
                     ),
                     (Route<dynamic> route) => false,
                   );
@@ -423,11 +424,11 @@ class OverviewResultScreen extends StatelessWidget {
               alignment: Alignment.center,
               child: TextButton(
                 onPressed: () async {
-                  await SoundHelper.playTransition();
                   Navigator.pushAndRemoveUntil(
                     context,
-                    MaterialPageRoute(
-                      builder: (context) => const InputNameScreen(),
+                    CustomPageRoute(
+                      child: const InputNameScreen(),
+                      backgroundColor: const Color(0xFF1D362C),
                     ),
                     (Route<dynamic> route) => false,
                   );

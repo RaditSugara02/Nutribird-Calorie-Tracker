@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:flutter_application_rpl_final/screens/addcustomfoodscreen.dart';
 import 'package:flutter_application_rpl_final/screens/fooddetailscreen.dart';
 import 'package:flutter_application_rpl_final/widgets/sound_helper.dart';
+import 'package:flutter_application_rpl_final/widgets/custom_page_route.dart';
 
 class AddFoodScreen extends StatefulWidget {
   final Function(
@@ -33,6 +34,9 @@ class _AddFoodScreenState extends State<AddFoodScreen>
   List<FoodEntry> _filteredUserFoods = [];
   final TextEditingController _searchController = TextEditingController();
   late TabController _tabController;
+
+  // Flag untuk mencegah multiple navigation
+  bool _isNavigating = false;
 
   // Data makanan yang sudah ditetapkan secara default
   final List<FoodEntry> _defaultPredefinedFoods = [
@@ -259,7 +263,6 @@ class _AddFoodScreenState extends State<AddFoodScreen>
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios, color: lightGreenText),
           onPressed: () async {
-            await SoundHelper.playTransition();
             if (mounted) {
               Navigator.pop(context);
             }
@@ -281,12 +284,16 @@ class _AddFoodScreenState extends State<AddFoodScreen>
               color: lightGreenText,
             ), // Icon tambah untuk makanan kustom
             onPressed: () async {
-              await SoundHelper.playTransition();
-              if (!mounted) return;
+              if (_isNavigating) return;
+              _isNavigating = true;
+              if (!mounted) {
+                _isNavigating = false;
+                return;
+              }
               final newFood = await Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => AddCustomFoodScreen(
+                CustomPageRoute(
+                  child: AddCustomFoodScreen(
                     // Halaman baru
                     onFoodAdded:
                         (
@@ -310,19 +317,34 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                           );
                         },
                   ),
+                  backgroundColor: const Color(0xFF1D362C),
                 ),
               ); // end of await Navigator.push
+              _isNavigating = false;
 
               if (newFood != null && newFood is FoodEntry) {
-                setState(() {
-                  // Tambahkan makanan kustom ke daftar user foods
-                  _userFoods.add(newFood);
-                  _filterFoods(); // Perbarui daftar yang difilter
-                });
-                await _saveUserFoods(); // Simpan makanan yang ditambahkan pengguna
+                // Cek apakah makanan sudah ada di list (untuk menghindari duplikasi)
+                final bool foodExists = _userFoods.any(
+                  (food) => food.foodName == newFood.foodName,
+                );
+
+                if (!foodExists) {
+                  setState(() {
+                    // Tambahkan makanan kustom ke daftar user foods
+                    _userFoods.add(newFood);
+                    _filterFoods(); // Perbarui daftar yang difilter
+                  });
+                  await _saveUserFoods(); // Simpan makanan yang ditambahkan pengguna
+                } else {
+                  // Jika makanan sudah ada, reload untuk memastikan data terbaru
+                  await _loadAllFoods();
+                }
 
                 // Pindah ke tab "Makanan User" setelah menambahkan makanan baru
                 _tabController.animateTo(1);
+              } else {
+                // Reload semua makanan untuk memastikan data terbaru (jika tidak ada makanan baru)
+                await _loadAllFoods();
               }
             },
           ),
@@ -441,16 +463,22 @@ class _AddFoodScreenState extends State<AddFoodScreen>
           ),
           child: InkWell(
             onTap: () async {
-              await SoundHelper.playTransition();
-              if (!mounted) return;
+              if (_isNavigating) return;
+              _isNavigating = true;
+              if (!mounted) {
+                _isNavigating = false;
+                return;
+              }
               final FoodEntry? adjustedFood = await Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => FoodDetailScreen(
+                CustomPageRoute(
+                  child: FoodDetailScreen(
                     food: food,
                   ), // Navigasi ke FoodDetailScreen
+                  backgroundColor: const Color(0xFF1D362C),
                 ),
               );
+              _isNavigating = false;
 
               if (adjustedFood != null) {
                 widget.onFoodAdded(

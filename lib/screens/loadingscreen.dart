@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_rpl_final/screens/overviewresultscreen.dart';
 import 'dart:async';
 import 'package:flutter_application_rpl_final/widgets/sound_helper.dart';
+import 'package:flutter_application_rpl_final/widgets/custom_page_route.dart';
 
 class LoadingScreen extends StatefulWidget {
   final String name;
@@ -65,12 +66,11 @@ class _LoadingScreenState extends State<LoadingScreen> {
 
   Future<void> _navigateToOverview() async {
     if (!mounted) return;
-    await SoundHelper.playTransition();
     if (mounted) {
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(
-          builder: (context) => OverviewResultScreen(
+        CustomPageRoute(
+          child: OverviewResultScreen(
             name: widget.name,
             gender: widget.gender,
             birthDay: widget.birthDay,
@@ -81,6 +81,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
             activityLevel: widget.activityLevel,
             goal: widget.goal,
           ),
+          backgroundColor: const Color(0xFF1D362C),
         ),
         (Route<dynamic> route) =>
             false, // Ini akan menghapus semua rute sebelumnya

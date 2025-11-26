@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:audioplayers/audioplayers.dart';
-import 'package:flutter_application_rpl_final/widgets/sound_helper.dart';
 
 class AddWeightScreen extends StatefulWidget {
   final Function(double weight) onWeightAdded;
@@ -138,7 +137,6 @@ class _AddWeightScreenState extends State<AddWeightScreen> {
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios, color: lightGreenText),
           onPressed: () async {
-            await SoundHelper.playTransition();
             if (mounted) {
               Navigator.pop(context);
             }
@@ -154,8 +152,14 @@ class _AddWeightScreenState extends State<AddWeightScreen> {
         ),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.only(
+            left: 24.0,
+            right: 24.0,
+            top: 24.0,
+            bottom: 24.0 + MediaQuery.of(context).padding.bottom,
+          ),
         child: Form(
           key: _formKey,
           child: Column(
@@ -242,17 +246,36 @@ class _AddWeightScreenState extends State<AddWeightScreen> {
                     });
                     return 'Berat badan tidak boleh kosong';
                   }
-                  if (double.tryParse(value) == null ||
-                      double.parse(value) <= 0) {
+                  final weight = double.tryParse(value);
+                  if (weight == null) {
                     _playErrorSound();
-                    // Pastikan video tetap berjalan setelah validator error
                     WidgetsBinding.instance.addPostFrameCallback((_) {
                       if (_isVideoInitialized &&
                           !_videoController.value.isPlaying) {
                         _videoController.play();
                       }
                     });
-                    return 'Masukkan angka berat badan yang valid (> 0)';
+                    return 'Masukkan angka yang valid';
+                  }
+                  if (weight < 20) {
+                    _playErrorSound();
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (_isVideoInitialized &&
+                          !_videoController.value.isPlaying) {
+                        _videoController.play();
+                      }
+                    });
+                    return 'Berat badan minimal 20 kg';
+                  }
+                  if (weight > 200) {
+                    _playErrorSound();
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (_isVideoInitialized &&
+                          !_videoController.value.isPlaying) {
+                        _videoController.play();
+                      }
+                    });
+                    return 'Berat badan maksimal 200 kg';
                   }
                   return null;
                 },
@@ -267,7 +290,6 @@ class _AddWeightScreenState extends State<AddWeightScreen> {
                         _weightController.text,
                       );
                       widget.onWeightAdded(weight);
-                      await SoundHelper.playTransition();
                       if (mounted) {
                         Navigator.pop(context);
                       }
@@ -296,6 +318,7 @@ class _AddWeightScreenState extends State<AddWeightScreen> {
                 ),
               ),
             ],
+          ),
           ),
         ),
       ),

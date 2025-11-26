@@ -4,10 +4,11 @@ import 'package:flutter_application_rpl_final/screens/profilescreen.dart';
 import 'package:flutter_application_rpl_final/screens/addfoodscreen.dart';
 import 'package:flutter_application_rpl_final/screens/addactivityscreen.dart';
 import 'package:flutter_application_rpl_final/screens/settingsscreen.dart';
+import 'package:flutter_application_rpl_final/screens/addcustomfoodscreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:intl/intl.dart';
-import 'package:flutter_application_rpl_final/widgets/sound_helper.dart';
+import 'package:flutter_application_rpl_final/widgets/custom_page_route.dart';
 
 // Kelas untuk merepresentasikan entri makanan
 class FoodEntry {
@@ -126,6 +127,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final GlobalKey<StatisticsScreenState> _statisticsScreenKey = GlobalKey();
   final GlobalKey<ProfileScreenState> _profileScreenKey = GlobalKey();
 
+  // Flag untuk mencegah multiple navigation
+  bool _isNavigating = false;
+
   @override
   void initState() {
     super.initState();
@@ -170,19 +174,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
           [];
       _caloriesConsumed = _foodEntries.fold(
         0,
-        (sum, entry) => sum + entry.calories,
+        (sum, entry) => sum + (entry.calories > 0 ? entry.calories : 0),
       );
       _proteinConsumed = _foodEntries.fold(
         0.0,
-        (sum, entry) => sum + (entry.protein ?? 0.0),
+        (sum, entry) => sum + ((entry.protein ?? 0.0) > 0 ? (entry.protein ?? 0.0) : 0.0),
       );
       _fatConsumed = _foodEntries.fold(
         0.0,
-        (sum, entry) => sum + (entry.fat ?? 0.0),
+        (sum, entry) => sum + ((entry.fat ?? 0.0) > 0 ? (entry.fat ?? 0.0) : 0.0),
       );
       _carbConsumed = _foodEntries.fold(
         0.0,
-        (sum, entry) => sum + (entry.carb ?? 0.0),
+        (sum, entry) => sum + ((entry.carb ?? 0.0) > 0 ? (entry.carb ?? 0.0) : 0.0),
       );
       print('DashboardScreen: Food entries loaded: ${_foodEntries.length}');
     });
@@ -322,19 +326,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
       );
       _caloriesConsumed = _foodEntries.fold(
         0,
-        (sum, entry) => sum + entry.calories,
+        (sum, entry) => sum + (entry.calories > 0 ? entry.calories : 0),
       );
       _proteinConsumed = _foodEntries.fold(
         0.0,
-        (sum, entry) => sum + (entry.protein ?? 0.0),
+        (sum, entry) => sum + ((entry.protein ?? 0.0) > 0 ? (entry.protein ?? 0.0) : 0.0),
       );
       _fatConsumed = _foodEntries.fold(
         0.0,
-        (sum, entry) => sum + (entry.fat ?? 0.0),
+        (sum, entry) => sum + ((entry.fat ?? 0.0) > 0 ? (entry.fat ?? 0.0) : 0.0),
       );
       _carbConsumed = _foodEntries.fold(
         0.0,
-        (sum, entry) => sum + (entry.carb ?? 0.0),
+        (sum, entry) => sum + ((entry.carb ?? 0.0) > 0 ? (entry.carb ?? 0.0) : 0.0),
       );
     });
     await _saveEntries();
@@ -357,6 +361,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
     await _saveEntries(); // Pastikan await
   }
 
+  void _updateFood(int index, FoodEntry updatedFood) async {
+    setState(() {
+      _foodEntries[index] = updatedFood;
+      // Recalculate consumed values
+      _caloriesConsumed = _foodEntries.fold(
+        0,
+        (sum, entry) => sum + (entry.calories > 0 ? entry.calories : 0),
+      );
+      _proteinConsumed = _foodEntries.fold(
+        0.0,
+        (sum, entry) => sum + ((entry.protein ?? 0.0) > 0 ? (entry.protein ?? 0.0) : 0.0),
+      );
+      _fatConsumed = _foodEntries.fold(
+        0.0,
+        (sum, entry) => sum + ((entry.fat ?? 0.0) > 0 ? (entry.fat ?? 0.0) : 0.0),
+      );
+      _carbConsumed = _foodEntries.fold(
+        0.0,
+        (sum, entry) => sum + ((entry.carb ?? 0.0) > 0 ? (entry.carb ?? 0.0) : 0.0),
+      );
+    });
+    await _saveEntries();
+  }
+
   void _removeFood(FoodEntry entryToRemove) async {
     setState(() {
       _foodEntries.removeWhere(
@@ -371,19 +399,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
       // Recalculate consumed values
       _caloriesConsumed = _foodEntries.fold(
         0,
-        (sum, entry) => sum + entry.calories,
+        (sum, entry) => sum + (entry.calories > 0 ? entry.calories : 0),
       );
       _proteinConsumed = _foodEntries.fold(
         0.0,
-        (sum, entry) => sum + (entry.protein ?? 0.0),
+        (sum, entry) => sum + ((entry.protein ?? 0.0) > 0 ? (entry.protein ?? 0.0) : 0.0),
       );
       _fatConsumed = _foodEntries.fold(
         0.0,
-        (sum, entry) => sum + (entry.fat ?? 0.0),
+        (sum, entry) => sum + ((entry.fat ?? 0.0) > 0 ? (entry.fat ?? 0.0) : 0.0),
       );
       _carbConsumed = _foodEntries.fold(
         0.0,
-        (sum, entry) => sum + (entry.carb ?? 0.0),
+        (sum, entry) => sum + ((entry.carb ?? 0.0) > 0 ? (entry.carb ?? 0.0) : 0.0),
       );
     });
     await _saveEntries();
@@ -451,14 +479,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
           IconButton(
             icon: Icon(Icons.settings, color: lightGreenText),
             onPressed: () async {
-              await SoundHelper.playTransition();
+              if (_isNavigating) return;
+              _isNavigating = true;
               if (mounted) {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => const SettingsScreen(),
+                  CustomPageRoute(
+                    child: const SettingsScreen(),
+                    backgroundColor: darkGreenBg,
                   ),
-                );
+                ).then((_) {
+                  _isNavigating = false;
+                });
+              } else {
+                _isNavigating = false;
               }
             },
           ),
@@ -468,10 +502,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
       body: IndexedStack(
         index: _selectedIndex,
         children: [
-          SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.only(
+                left: 16.0,
+                right: 16.0,
+                top: 16.0,
+                bottom: 16.0 + MediaQuery.of(context).padding.bottom,
+              ),
+              child: Column(
+                children: [
                 // Tanggal dan Navigasi Hari (Dipindahkan ke dalam body)
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -510,138 +550,163 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ],
                 ),
                 const SizedBox(height: 20),
-                Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // Masuk Kalori
-                      Column(
+                // Gunakan LayoutBuilder untuk membuat layout responsif
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    // Hitung ukuran layar
+                    final screenWidth = MediaQuery.of(context).size.width;
+                    
+                    // Ukuran circular progress responsif (maksimal 220, minimal 150)
+                    final double circleSize = (screenWidth * 0.5).clamp(150.0, 220.0);
+                    final double innerCircleSize = (circleSize * 0.9).clamp(130.0, 200.0);
+                    final double fontSize = (circleSize * 0.22).clamp(32.0, 48.0);
+                    final double labelFontSize = (circleSize * 0.07).clamp(12.0, 16.0);
+                    final double sideFontSize = (circleSize * 0.11).clamp(18.0, 24.0);
+                    
+                    return Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(
-                            'Masuk',
-                            style: TextStyle(
-                              color: lightGreenText.withOpacity(0.8),
-                              fontSize: 16,
-                            ),
-                          ),
-                          Text(
-                            '$_caloriesConsumed',
-                            style: TextStyle(
-                              color: lightGreenText,
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(
-                            'kalori',
-                            style: TextStyle(
-                              color: lightGreenText.withOpacity(0.8),
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(
-                        width: 20,
-                      ), // Spasi antara teks dan lingkaran
-                      SizedBox(
-                        width: 220,
-                        height: 220,
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            Container(
-                              width: 200,
-                              height: 200,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: statusColor.withOpacity(0.05),
-                                border: Border.all(
-                                  color: statusColor.withOpacity(0.2),
-                                  width: 6,
-                                ),
-                              ),
-                            ),
-                            SizedBox(
-                              width: 220,
-                              height: 220,
-                              child: TweenAnimationBuilder<double>(
-                                tween: Tween<double>(
-                                  begin: 0.0,
-                                  end: progressValue,
-                                ),
-                                duration: const Duration(milliseconds: 500),
-                                curve: Curves.easeOut,
-                                builder: (context, value, _) {
-                                  return CircularProgressIndicator(
-                                    value: value,
-                                    strokeWidth: 12,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      statusColor,
-                                    ),
-                                    backgroundColor: statusColor.withOpacity(
-                                      0.15,
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
+                          // Masuk Kalori
+                          Flexible(
+                            child: Column(
                               children: [
                                 Text(
-                                  '$displayedRemainingCalories',
+                                  'Masuk',
                                   style: TextStyle(
-                                    fontSize: 48,
-                                    fontWeight: FontWeight.bold,
-                                    color: statusColor,
+                                    color: lightGreenText.withOpacity(0.8),
+                                    fontSize: labelFontSize,
                                   ),
                                 ),
-                                const SizedBox(height: 4),
                                 Text(
-                                  statusLabel,
+                                  '$_caloriesConsumed',
                                   style: TextStyle(
-                                    fontSize: 16,
-                                    color: statusColor.withOpacity(0.8),
+                                    color: lightGreenText,
+                                    fontSize: sideFontSize,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Text(
+                                  'kalori',
+                                  style: TextStyle(
+                                    color: lightGreenText.withOpacity(0.8),
+                                    fontSize: labelFontSize * 0.85,
                                   ),
                                 ),
                               ],
                             ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(
-                        width: 20,
-                      ), // Spasi antara lingkaran dan teks
-                      // Dibakar Kalori
-                      Column(
-                        children: [
-                          Text(
-                            'Dibakar',
-                            style: TextStyle(
-                              color: lightGreenText.withOpacity(0.8),
-                              fontSize: 16,
+                          ),
+                          SizedBox(
+                            width: screenWidth * 0.05,
+                          ), // Spasi responsif antara teks dan lingkaran
+                          SizedBox(
+                            width: circleSize,
+                            height: circleSize,
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                Container(
+                                  width: innerCircleSize,
+                                  height: innerCircleSize,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: statusColor.withOpacity(0.05),
+                                    border: Border.all(
+                                      color: statusColor.withOpacity(0.2),
+                                      width: (circleSize * 0.027).clamp(4.0, 6.0),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: circleSize,
+                                  height: circleSize,
+                                  child: TweenAnimationBuilder<double>(
+                                    tween: Tween<double>(
+                                      begin: 0.0,
+                                      end: progressValue,
+                                    ),
+                                    duration: const Duration(milliseconds: 500),
+                                    curve: Curves.easeOut,
+                                    builder: (context, value, _) {
+                                      return CircularProgressIndicator(
+                                        value: value,
+                                        strokeWidth: (circleSize * 0.055).clamp(8.0, 12.0),
+                                        valueColor: AlwaysStoppedAnimation<Color>(
+                                          statusColor,
+                                        ),
+                                        backgroundColor: statusColor.withOpacity(
+                                          0.15,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                                Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Text(
+                                        '$displayedRemainingCalories',
+                                        style: TextStyle(
+                                          fontSize: fontSize,
+                                          fontWeight: FontWeight.bold,
+                                          color: statusColor,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Text(
+                                        statusLabel,
+                                        style: TextStyle(
+                                          fontSize: labelFontSize,
+                                          color: statusColor.withOpacity(0.8),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
                           ),
-                          Text(
-                            '$_caloriesBurned',
-                            style: TextStyle(
-                              color: lightGreenText,
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(
-                            'Kalori',
-                            style: TextStyle(
-                              color: lightGreenText.withOpacity(0.8),
-                              fontSize: 14,
+                          SizedBox(
+                            width: screenWidth * 0.05,
+                          ), // Spasi responsif antara lingkaran dan teks
+                          // Dibakar Kalori
+                          Flexible(
+                            child: Column(
+                              children: [
+                                Text(
+                                  'Dibakar',
+                                  style: TextStyle(
+                                    color: lightGreenText.withOpacity(0.8),
+                                    fontSize: labelFontSize,
+                                  ),
+                                ),
+                                Text(
+                                  '$_caloriesBurned',
+                                  style: TextStyle(
+                                    color: lightGreenText,
+                                    fontSize: sideFontSize,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Text(
+                                  'Kalori',
+                                  style: TextStyle(
+                                    color: lightGreenText.withOpacity(0.8),
+                                    fontSize: labelFontSize * 0.85,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
-                    ],
-                  ),
+                    );
+                  },
                 ),
                 const SizedBox(height: 40),
                 Row(
@@ -708,13 +773,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   child: InkWell(
                     onTap: () async {
-                      await SoundHelper.playTransition();
-                      if (!mounted) return;
+                      if (_isNavigating) return;
+                      _isNavigating = true;
+                      if (!mounted) {
+                        _isNavigating = false;
+                        return;
+                      }
                       // Navigasi ke AddFoodScreen dan tunggu hasilnya
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
-                          builder: (context) => AddFoodScreen(
+                        CustomPageRoute(
+                          child: AddFoodScreen(
                             onFoodAdded:
                                 (
                                   foodName,
@@ -736,8 +805,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   );
                                 },
                           ),
+                          backgroundColor: darkGreenBg,
                         ),
-                      );
+                      ).then((_) {
+                        _isNavigating = false;
+                      });
                     },
                     borderRadius: BorderRadius.circular(15),
                     child: Padding(
@@ -777,18 +849,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   child: InkWell(
                     onTap: () async {
-                      await SoundHelper.playTransition();
-                      if (!mounted) return;
+                      if (_isNavigating) return;
+                      _isNavigating = true;
+                      if (!mounted) {
+                        _isNavigating = false;
+                        return;
+                      }
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
-                          builder: (context) => AddActivityScreen(
+                        CustomPageRoute(
+                          child: AddActivityScreen(
                             onActivityAdded: (activityName, caloriesBurned) {
                               _addActivity(activityName, caloriesBurned);
                             },
                           ),
+                          backgroundColor: darkGreenBg,
                         ),
-                      );
+                      ).then((_) {
+                        _isNavigating = false;
+                      });
                     },
                     borderRadius: BorderRadius.circular(15),
                     child: Padding(
@@ -825,7 +904,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ), // Spasi antara daftar makanan dan aktivitas
                 // Bagian untuk menampilkan daftar aktivitas
                 _buildActivityEntriesList(),
-              ],
+                ],
+              ),
             ),
           ),
           StatisticsScreen(
@@ -860,7 +940,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
     Color textColor,
     Color bgColor,
   ) {
-    double progress = total > 0 ? current / total : 0.0;
+    // Pastikan current tidak minus
+    final int safeCurrent = current < 0 ? 0 : current;
+    
+    // Cek apakah melewati batas
+    final bool isOverLimit = safeCurrent > total && total > 0;
+    
+    // Warna untuk lingkaran dan teks (merah jika melewati batas)
+    final Color displayColor = isOverLimit
+        ? const Color(0xFFB22222) // Merah seperti kalori harian
+        : textColor;
+    
+    // Progress value (clamp antara 0 dan 1, atau lebih dari 1 jika melewati batas)
+    double progress = total > 0 ? (safeCurrent / total).clamp(0.0, 1.0) : 0.0;
+    
     return Column(
       children: [
         Stack(
@@ -873,35 +966,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 value: progress,
                 strokeWidth: 5,
                 valueColor: AlwaysStoppedAnimation<Color>(
-                  textColor,
-                ), // Warna progres
-                backgroundColor: textColor.withOpacity(
+                  displayColor,
+                ), // Warna progres (merah jika melewati batas)
+                backgroundColor: displayColor.withOpacity(
                   0.3,
                 ), // Warna background lingkaran
               ),
             ),
             Text(
-              '${current}g', // Tampilkan nilai 'current' di tengah lingkaran
+              '${safeCurrent}g', // Tampilkan nilai 'current' di tengah lingkaran
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: textColor,
-              ), // Sesuaikan gaya teks
+                color: displayColor,
+              ), // Warna teks (merah jika melewati batas)
             ),
           ],
         ),
         const SizedBox(height: 5),
         Text(
-          '$current / ${total}g',
+          '$safeCurrent / ${total}g',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
-            color: textColor,
-          ),
+            color: displayColor,
+          ), // Warna teks (merah jika melewati batas)
         ),
         Text(
           label,
-          style: TextStyle(fontSize: 14, color: textColor.withOpacity(0.8)),
+          style: TextStyle(fontSize: 14, color: displayColor.withOpacity(0.8)),
         ),
       ],
     );
@@ -951,6 +1044,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ...entries.asMap().entries.map((entryMap) {
               final entry = entryMap.value;
               final index = entryMap.key;
+              // Cari index di _foodEntries (bukan di groupedEntries)
+              final int globalIndex = _foodEntries.indexWhere(
+                (e) =>
+                    e.foodName == entry.foodName &&
+                    e.calories == entry.calories &&
+                    e.mealType == entry.mealType &&
+                    e.protein == entry.protein &&
+                    e.fat == entry.fat &&
+                    e.carb == entry.carb,
+              );
               return Dismissible(
                 key: Key(
                   'food_${mealType}_${index}_${entry.foodName}_${entry.calories}',
@@ -1018,27 +1121,74 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                   );
                 },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        entry.foodName,
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: const Color(0xFFA2F46E).withOpacity(0.9),
+                child: InkWell(
+                  onTap: () async {
+                    if (_isNavigating) return;
+                    _isNavigating = true;
+                    if (!mounted) {
+                      _isNavigating = false;
+                      return;
+                    }
+                    // Navigasi ke halaman edit
+                    await Navigator.push(
+                      context,
+                      CustomPageRoute(
+                        child: AddCustomFoodScreen(
+                          existingFood: entry,
+                          isEditMode: true,
+                          onFoodAdded: (
+                            foodName,
+                            calories,
+                            mealType,
+                            protein,
+                            fat,
+                            carb,
+                            imagePath,
+                          ) {
+                            // Update makanan yang sudah ada
+                            final updatedFood = FoodEntry(
+                              foodName: foodName,
+                              calories: calories,
+                              mealType: mealType,
+                              protein: protein,
+                              fat: fat,
+                              carb: carb,
+                              imagePath: imagePath,
+                            );
+                            if (globalIndex >= 0 && globalIndex < _foodEntries.length) {
+                              _updateFood(globalIndex, updatedFood);
+                            }
+                          },
                         ),
+                        backgroundColor: darkGreenBg,
                       ),
-                      Text(
-                        '${entry.calories} kcal',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFFA2F46E),
+                    );
+                    _isNavigating = false;
+                    // Reload entries setelah edit
+                    await _loadUserProfileAndEntries();
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          entry.foodName,
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: const Color(0xFFA2F46E).withOpacity(0.9),
+                          ),
                         ),
-                      ),
-                    ],
+                        Text(
+                          '${entry.calories} kcal',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFFA2F46E),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               );

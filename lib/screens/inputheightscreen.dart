@@ -3,6 +3,7 @@ import 'package:flutter_application_rpl_final/screens/inputweightscreen.dart';
 import 'package:flutter_application_rpl_final/widgets/progress_bar.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_application_rpl_final/widgets/sound_helper.dart';
+import 'package:flutter_application_rpl_final/widgets/custom_page_route.dart';
 
 class InputHeightScreen extends StatefulWidget {
   final String name;
@@ -66,7 +67,6 @@ class _InputHeightScreenState extends State<InputHeightScreen> {
                   IconButton(
                     icon: Icon(Icons.arrow_back_ios, color: lightGreenText),
                     onPressed: () async {
-                      await SoundHelper.playTransition();
                       if (mounted) {
                         Navigator.pop(context);
                       }
@@ -154,12 +154,11 @@ class _InputHeightScreenState extends State<InputHeightScreen> {
                 child: ElevatedButton(
                   onPressed: () async {
                     if (_formKey.currentState!.validate()) {
-                      await SoundHelper.playTransition();
                       if (mounted) {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(
-                            builder: (context) => InputWeightScreen(
+                          CustomPageRoute(
+                            child: InputWeightScreen(
                               name: widget.name,
                               gender: widget.gender,
                               birthDay: widget.birthDay,
@@ -167,6 +166,7 @@ class _InputHeightScreenState extends State<InputHeightScreen> {
                               birthYear: widget.birthYear,
                               height: double.parse(_heightController.text),
                             ),
+                            backgroundColor: const Color(0xFF1D362C),
                           ),
                         );
                       }

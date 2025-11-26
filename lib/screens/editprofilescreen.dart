@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:audioplayers/audioplayers.dart';
-import 'package:flutter_application_rpl_final/widgets/sound_helper.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -86,7 +85,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: lightGreenText),
           onPressed: () async {
-            await SoundHelper.playTransition();
             if (mounted) {
               Navigator.of(context).pop();
             }
@@ -233,7 +231,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final Color lightGreenText = const Color(0xFFA2F46E);
 
     return DropdownButtonFormField<String>(
-      value: selectedValue,
+      initialValue: selectedValue,
       isExpanded: true, // Allow dropdown to expand and handle long text
       decoration: InputDecoration(
         labelText: label,
@@ -356,12 +354,37 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Future<void> _saveProfile() async {
     final prefs = await SharedPreferences.getInstance();
 
+    // Validasi berat badan
+    final weight = double.tryParse(_weightController.text);
+    if (weight != null) {
+      if (weight < 20) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Berat badan minimal 20 kg'),
+            backgroundColor: Colors.redAccent,
+            duration: Duration(seconds: 2),
+          ),
+        );
+        return;
+      }
+      if (weight > 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Berat badan maksimal 200 kg'),
+            backgroundColor: Colors.redAccent,
+            duration: Duration(seconds: 2),
+          ),
+        );
+        return;
+      }
+    }
+
     final newProfileData = {
       'name': _nameController.text,
       'gender': _selectedGender,
       'birthYear': int.tryParse(_birthYearController.text),
       'height': double.tryParse(_heightController.text),
-      'weight': double.tryParse(_weightController.text),
+      'weight': weight,
       'activityLevel': _selectedActivityLevel,
       'goal': _selectedGoal,
     };
@@ -451,8 +474,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       await Future.delayed(Duration(milliseconds: 300));
     }
 
-    // Play transition sound sebelum kembali
-    await SoundHelper.playTransition();
+    // Kembali tanpa sound
 
     // Kembali ke halaman sebelumnya dan beri tahu bahwa perubahan berhasil disimpan
     if (mounted) {

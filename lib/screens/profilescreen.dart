@@ -5,7 +5,8 @@ import 'dart:io';
 import 'package:flutter_application_rpl_final/screens/editprofilescreen.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:flutter_application_rpl_final/widgets/sound_helper.dart';
+import 'package:flutter_application_rpl_final/widgets/permission_helper.dart';
+import 'package:flutter_application_rpl_final/widgets/custom_page_route.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -54,25 +55,41 @@ class ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _pickProfileImage() async {
     try {
+      // Request permission terlebih dahulu
+      final hasPermission = await PermissionHelper.requestGalleryPermission(context);
+      
+      if (!hasPermission) {
+        // User menolak permission atau tidak memberikan akses
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Izin akses galeri diperlukan untuk memilih foto profil.'),
+              backgroundColor: Colors.orangeAccent,
+            ),
+          );
+        }
+        return;
+      }
+
+      // Permission diberikan, lanjutkan memilih gambar
       final XFile? pickedFile = await _picker.pickImage(
         source: ImageSource.gallery,
-        imageQuality: 85, // Compress image to 85% quality
-        maxWidth: 512, // Resize to max 512px width (maintains 1:1 ratio better)
-        maxHeight: 512, // Resize to max 512px height
       );
 
       if (pickedFile != null) {
+        try {
+          // Sementara nonaktifkan crop untuk menghindari crash
+          // Gunakan gambar asli langsung
         final appDocDir = await getApplicationDocumentsDirectory();
         final String uniqueFileName =
             'profile_${DateTime.now().millisecondsSinceEpoch}.jpg';
-        final File newImage = File(pickedFile.path);
-        final File savedImage = await newImage.copy(
+          final File finalImageFile = await File(pickedFile.path).copy(
           '${appDocDir.path}/$uniqueFileName',
         );
 
         // Update profile data with new image path
         if (_userProfileData != null) {
-          _userProfileData!['profileImagePath'] = savedImage.path;
+            _userProfileData!['profileImagePath'] = finalImageFile.path;
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString(
             'user_profile_data',
@@ -84,26 +101,41 @@ class ProfileScreenState extends State<ProfileScreen> {
         if (!mounted) return;
 
         setState(() {
-          _profileImage = savedImage;
+            _profileImage = finalImageFile;
         });
 
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+            const SnackBar(
             content: Text('Foto profil berhasil diubah'),
             backgroundColor: Colors.green,
             duration: Duration(seconds: 2),
           ),
         );
+        } catch (e) {
+          print('Error saving profile image: $e');
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Gagal menyimpan foto profil: $e'),
+                backgroundColor: Colors.redAccent,
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          }
+        }
       }
     } catch (e) {
+      print('Error picking profile image: $e');
+      if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Gagal mengubah foto profil: $e'),
           backgroundColor: Colors.redAccent,
-          duration: Duration(seconds: 3),
+            duration: const Duration(seconds: 3),
         ),
       );
+      }
     }
   }
 
@@ -352,11 +384,11 @@ class ProfileScreenState extends State<ProfileScreen> {
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: () async {
-                          await SoundHelper.playTransition();
                           if (!mounted) return;
                           final result = await Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => const EditProfileScreen(),
+                            CustomPageRoute(
+                              child: const EditProfileScreen(),
+                              backgroundColor: const Color(0xFF1D362C),
                             ),
                           );
                           // Wait a bit to ensure navigation is complete

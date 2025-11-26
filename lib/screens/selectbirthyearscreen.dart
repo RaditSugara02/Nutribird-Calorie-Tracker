@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_rpl_final/screens/inputheightscreen.dart';
 import 'package:flutter_application_rpl_final/widgets/progress_bar.dart';
 import 'package:flutter_application_rpl_final/widgets/sound_helper.dart';
+import 'package:flutter_application_rpl_final/widgets/custom_page_route.dart';
 
 class SelectBirthYearScreen extends StatefulWidget {
   final String name;
@@ -113,7 +114,6 @@ class _SelectBirthYearScreenState extends State<SelectBirthYearScreen> {
                   IconButton(
                     icon: Icon(Icons.arrow_back_ios, color: lightGreenText),
                     onPressed: () async {
-                      await SoundHelper.playTransition();
                       if (mounted) {
                         Navigator.pop(context);
                       }
@@ -259,18 +259,18 @@ class _SelectBirthYearScreenState extends State<SelectBirthYearScreen> {
                           ),
                         );
                       } else {
-                        await SoundHelper.playTransition();
                         if (mounted) {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
-                              builder: (context) => InputHeightScreen(
+                            CustomPageRoute(
+                              child: InputHeightScreen(
                                 name: widget.name,
                                 gender: widget.gender,
                                 birthDay: _selectedDay!,
                                 birthMonth: _selectedMonth!,
                                 birthYear: _selectedYear!,
                               ),
+                              backgroundColor: const Color(0xFF1D362C),
                             ),
                           );
                         }
