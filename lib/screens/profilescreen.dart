@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter_application_rpl_final/screens/editprofilescreen.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_application_rpl_final/widgets/permission_helper.dart';
 import 'package:flutter_application_rpl_final/widgets/custom_page_route.dart';
@@ -56,14 +57,18 @@ class ProfileScreenState extends State<ProfileScreen> {
   Future<void> _pickProfileImage() async {
     try {
       // Request permission terlebih dahulu
-      final hasPermission = await PermissionHelper.requestGalleryPermission(context);
-      
+      final hasPermission = await PermissionHelper.requestGalleryPermission(
+        context,
+      );
+
       if (!hasPermission) {
         // User menolak permission atau tidak memberikan akses
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Izin akses galeri diperlukan untuk memilih foto profil.'),
+              content: Text(
+                'Izin akses galeri diperlukan untuk memilih foto profil.',
+              ),
               backgroundColor: Colors.orangeAccent,
             ),
           );
@@ -74,44 +79,100 @@ class ProfileScreenState extends State<ProfileScreen> {
       // Permission diberikan, lanjutkan memilih gambar
       final XFile? pickedFile = await _picker.pickImage(
         source: ImageSource.gallery,
+        imageQuality: 85, // Compress untuk mengurangi ukuran
       );
 
       if (pickedFile != null) {
         try {
-          // Sementara nonaktifkan crop untuk menghindari crash
-          // Gunakan gambar asli langsung
-        final appDocDir = await getApplicationDocumentsDirectory();
-        final String uniqueFileName =
-            'profile_${DateTime.now().millisecondsSinceEpoch}.jpg';
-          final File finalImageFile = await File(pickedFile.path).copy(
-          '${appDocDir.path}/$uniqueFileName',
-        );
+          // Prepare output path untuk cropped image
+          final appDocDir = await getApplicationDocumentsDirectory();
+          final String outputFileName =
+              'profile_${DateTime.now().millisecondsSinceEpoch}.jpg';
+          final String outputPath = '${appDocDir.path}/$outputFileName';
 
-        // Update profile data with new image path
-        if (_userProfileData != null) {
-            _userProfileData!['profileImagePath'] = finalImageFile.path;
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setString(
-            'user_profile_data',
-            jsonEncode(_userProfileData),
+          // Crop image - SQUARE untuk profile photo (locked aspect ratio)
+          final CroppedFile? croppedFile = await ImageCropper().cropImage(
+            sourcePath: pickedFile.path,
+            aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1), // Square
+            uiSettings: [
+              AndroidUiSettings(
+                toolbarTitle: 'Crop Foto Profil',
+                toolbarColor: const Color(0xFF1D362C), // Dark green
+                toolbarWidgetColor: const Color(0xFFA2F46E), // Light green
+                initAspectRatio: CropAspectRatioPreset.square,
+                lockAspectRatio: true, // Lock square untuk profile
+                aspectRatioPresets: [CropAspectRatioPreset.square],
+                hideBottomControls: false,
+                showCropGrid: true,
+                cropFrameColor: const Color(0xFFA2F46E),
+                cropGridColor: const Color(0xFFA2F46E).withOpacity(0.5),
+                activeControlsWidgetColor: const Color(0xFFA2F46E),
+                dimmedLayerColor: const Color(0xFF1D362C).withOpacity(0.8),
+              ),
+              IOSUiSettings(
+                title: 'Crop Foto Profil',
+                aspectRatioPresets: [CropAspectRatioPreset.square],
+                aspectRatioLockEnabled: true, // Lock square
+                resetAspectRatioEnabled: false,
+                rotateButtonsHidden: false,
+                rotateClockwiseButtonHidden: false,
+              ),
+            ],
+            compressFormat: ImageCompressFormat.jpg,
+            compressQuality: 85,
           );
-        }
 
-        // Check if widget is still mounted before calling setState
-        if (!mounted) return;
+          if (croppedFile != null && croppedFile.path.isNotEmpty) {
+            try {
+              // File sudah di-save ke outputPath, langsung gunakan
+              final File finalImageFile = File(croppedFile.path);
 
-        setState(() {
-            _profileImage = finalImageFile;
-        });
+              // Verify file exists
+              if (!await finalImageFile.exists()) {
+                throw Exception('File hasil crop tidak ditemukan');
+              }
 
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-            content: Text('Foto profil berhasil diubah'),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
-          ),
-        );
+              // Update profile data with new image path
+              if (_userProfileData != null) {
+                _userProfileData!['profileImagePath'] = finalImageFile.path;
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.setString(
+                  'user_profile_data',
+                  jsonEncode(_userProfileData),
+                );
+              }
+
+              // Check if widget is still mounted before calling setState
+              if (!mounted) return;
+
+              setState(() {
+                _profileImage = finalImageFile;
+              });
+
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Foto profil berhasil diubah'),
+                  backgroundColor: Colors.green,
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            } catch (e) {
+              print('Error processing cropped profile file: $e');
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Gagal memproses foto profil: $e'),
+                    backgroundColor: Colors.redAccent,
+                    duration: const Duration(seconds: 3),
+                  ),
+                );
+              }
+            }
+          } else {
+            // User cancel crop
+            print('User canceled crop');
+          }
         } catch (e) {
           print('Error saving profile image: $e');
           if (mounted) {
@@ -128,13 +189,13 @@ class ProfileScreenState extends State<ProfileScreen> {
     } catch (e) {
       print('Error picking profile image: $e');
       if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Gagal mengubah foto profil: $e'),
-          backgroundColor: Colors.redAccent,
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal mengubah foto profil: $e'),
+            backgroundColor: Colors.redAccent,
             duration: const Duration(seconds: 3),
-        ),
-      );
+          ),
+        );
       }
     }
   }

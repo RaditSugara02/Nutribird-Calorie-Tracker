@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_rpl_final/screens/dashboardscreen.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_application_rpl_final/widgets/permission_helper.dart';
@@ -460,30 +461,109 @@ class _AddCustomFoodScreenState extends State<AddCustomFoodScreen> {
       // Permission diberikan, lanjutkan memilih gambar
       final XFile? pickedFile = await _picker.pickImage(
         source: ImageSource.gallery,
+        imageQuality: 85, // Compress untuk mengurangi ukuran
       );
 
       if (pickedFile != null) {
         try {
-          // Sementara nonaktifkan crop untuk menghindari crash
-          // Gunakan gambar asli langsung
+          // Prepare output path untuk cropped image
           final appDocDir = await getApplicationDocumentsDirectory();
-          final String uniqueFileName =
-              '${DateTime.now().millisecondsSinceEpoch}_${pickedFile.name.split('.').last}';
-          final File finalImageFile = await File(
-            pickedFile.path,
-          ).copy('${appDocDir.path}/$uniqueFileName');
+          final String outputFileName =
+              'food_${DateTime.now().millisecondsSinceEpoch}.jpg';
+          final String outputPath = '${appDocDir.path}/$outputFileName';
 
-          if (mounted) {
-            setState(() {
-              _imageFile = finalImageFile;
-            });
+          // Crop image dengan image_cropper
+          final CroppedFile? croppedFile = await ImageCropper().cropImage(
+            sourcePath: pickedFile.path,
+            aspectRatio: const CropAspectRatio(
+              ratioX: 1,
+              ratioY: 1,
+            ), // Square default, bisa diubah
+            uiSettings: [
+              AndroidUiSettings(
+                toolbarTitle: 'Crop Foto Makanan',
+                toolbarColor: const Color(0xFF1D362C), // Dark green
+                toolbarWidgetColor: const Color(0xFFA2F46E), // Light green
+                initAspectRatio: CropAspectRatioPreset.square,
+                lockAspectRatio: false, // Allow user to change aspect ratio
+                aspectRatioPresets: [
+                  CropAspectRatioPreset.square,
+                  CropAspectRatioPreset.ratio3x2,
+                  CropAspectRatioPreset.original,
+                  CropAspectRatioPreset.ratio4x3,
+                  CropAspectRatioPreset.ratio16x9,
+                ],
+                hideBottomControls: false,
+                showCropGrid: true,
+                cropFrameColor: const Color(0xFFA2F46E),
+                cropGridColor: const Color(0xFFA2F46E).withOpacity(0.5),
+                activeControlsWidgetColor: const Color(0xFFA2F46E),
+                dimmedLayerColor: const Color(0xFF1D362C).withOpacity(0.8),
+              ),
+              IOSUiSettings(
+                title: 'Crop Foto Makanan',
+                aspectRatioPresets: [
+                  CropAspectRatioPreset.square,
+                  CropAspectRatioPreset.ratio3x2,
+                  CropAspectRatioPreset.original,
+                  CropAspectRatioPreset.ratio4x3,
+                  CropAspectRatioPreset.ratio16x9,
+                ],
+                aspectRatioLockEnabled: false,
+                resetAspectRatioEnabled: true,
+                rotateButtonsHidden: false,
+                rotateClockwiseButtonHidden: false,
+              ),
+            ],
+            compressFormat: ImageCompressFormat.jpg,
+            compressQuality: 85,
+          );
+
+          if (croppedFile != null && croppedFile.path.isNotEmpty) {
+            try {
+              // Cropped file biasanya di temporary directory, copy ke documents
+              final File croppedFileObj = File(croppedFile.path);
+
+              // Verify cropped file exists
+              if (!await croppedFileObj.exists()) {
+                throw Exception('File hasil crop tidak ditemukan');
+              }
+
+              // Copy cropped file ke documents directory
+              final File finalImageFile = await croppedFileObj.copy(outputPath);
+
+              // Verify file was copied successfully
+              if (!await finalImageFile.exists()) {
+                throw Exception('Gagal menyimpan file');
+              }
+
+              if (mounted) {
+                setState(() {
+                  _imageFile = finalImageFile;
+                });
+              }
+            } catch (e) {
+              print('Error processing cropped file: $e');
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Gagal memproses gambar: $e'),
+                    backgroundColor: Colors.redAccent,
+                    duration: const Duration(seconds: 3),
+                  ),
+                );
+              }
+            }
+          } else {
+            // User cancel crop
+            print('User canceled crop');
           }
         } catch (e) {
-          print('Error saving image: $e');
+          print('Error cropping/saving image: $e');
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Gagal menyimpan gambar: $e'),
+                content: Text('Gagal memproses gambar: $e'),
                 backgroundColor: Colors.redAccent,
                 duration: const Duration(seconds: 3),
               ),
