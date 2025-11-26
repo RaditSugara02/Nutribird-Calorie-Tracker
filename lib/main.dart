@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_rpl_final/screens/welcomescreen_1.dart';
+import 'package:flutter_application_rpl_final/screens/dashboardscreen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 void main() async {
@@ -13,9 +15,30 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: WelcomeScreen1(),
+      home: FutureBuilder<bool>(
+        future: _hasExistingProfile(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
+
+          if (snapshot.hasData && snapshot.data == true) {
+            return const DashboardScreen();
+          }
+
+          return const WelcomeScreen1();
+        },
+      ),
     );
+  }
+
+  Future<bool> _hasExistingProfile() async {
+    final prefs = await SharedPreferences.getInstance();
+    final profile = prefs.getString('user_profile_data');
+    return profile != null && profile.isNotEmpty;
   }
 }

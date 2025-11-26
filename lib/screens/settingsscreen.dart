@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_application_rpl_final/screens/welcomescreen_1.dart';
-import 'dart:convert'; // Untuk JSON encode/decode
-import 'dart:io'; // Untuk File
-import 'package:path_provider/path_provider.dart'; // Untuk mendapatkan path direktori
-import 'package:file_picker/file_picker.dart'; // Untuk memilih file
+import 'dart:convert';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter_application_rpl_final/widgets/sound_helper.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -20,13 +21,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     print('User data cleared and logged out.');
 
     // Navigasi ke WelcomeScreen1 dan hapus semua rute sebelumnya
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const WelcomeScreen1(),
-      ),
-      (Route<dynamic> route) => false,
-    );
+    await SoundHelper.playTransition();
+    if (mounted) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const WelcomeScreen1()),
+        (Route<dynamic> route) => false,
+      );
+    }
   }
 
   Future<void> _clearAllAppData() async {
@@ -41,8 +43,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     // Hapus entri makanan dan aktivitas harian untuk rentang waktu yang masuk akal
     DateTime now = DateTime.now();
-    for (int i = -365; i <= 7; i++) { // Dari 365 hari yang lalu hingga 7 hari ke depan
-      DateTime date = DateTime(now.year, now.month, now.day).add(Duration(days: i));
+    for (int i = -365; i <= 7; i++) {
+      // Dari 365 hari yang lalu hingga 7 hari ke depan
+      DateTime date = DateTime(
+        now.year,
+        now.month,
+        now.day,
+      ).add(Duration(days: i));
       String dateKey = "entries_${date.year}_${date.month}_${date.day}";
       await prefs.remove('${dateKey}_food');
       await prefs.remove('${dateKey}_activity');
@@ -54,7 +61,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         backgroundColor: Colors.green,
       ),
     );
-    print('Semua data aplikasi telah dihapus (tidak termasuk data registrasi jika ingin mempertahankan). Membutuhkan restart aplikasi.');
+    print(
+      'Semua data aplikasi telah dihapus (tidak termasuk data registrasi jika ingin mempertahankan). Membutuhkan restart aplikasi.',
+    );
 
     // Opsional: Langsung logout setelah menghapus data, atau biarkan pengguna restart secara manual
     _logout(); // Mengasumsikan Anda ingin logout setelah menghapus semua data
@@ -78,15 +87,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text('Data berhasil diekspor ke: $filePath'),
-            backgroundColor: Colors.green),
+          content: Text('Data berhasil diekspor ke: $filePath'),
+          backgroundColor: Colors.green,
+        ),
       );
       print('Data berhasil diekspor ke: $filePath');
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text('Gagal mengekspor data: $e'),
-            backgroundColor: Colors.redAccent),
+          content: Text('Gagal mengekspor data: $e'),
+          backgroundColor: Colors.redAccent,
+        ),
       );
       print('Gagal mengekspor data: $e');
     }
@@ -119,37 +130,53 @@ class _SettingsScreenState extends State<SettingsScreen> {
             await prefs.setBool(key, value);
           } else if (value is double) {
             await prefs.setDouble(key, value);
-          } else if (value is List) { // Handle List of dynamic, then convert to List<String>
-            await prefs.setStringList(key, value.map((e) => e.toString()).toList());
+          } else if (value is List) {
+            // Handle List of dynamic, then convert to List<String>
+            await prefs.setStringList(
+              key,
+              value.map((e) => e.toString()).toList(),
+            );
           } else {
-            print('Tipe data tidak didukung untuk key $key: ${value.runtimeType}');
+            print(
+              'Tipe data tidak didukung untuk key $key: ${value.runtimeType}',
+            );
           }
         }
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('Data berhasil diimpor! Aplikasi akan dimulai ulang.'),
-              backgroundColor: Colors.green),
+            content: Text(
+              'Data berhasil diimpor! Aplikasi akan dimulai ulang.',
+            ),
+            backgroundColor: Colors.green,
+          ),
         );
         print('Data berhasil diimpor.');
 
         // Restart aplikasi (atau navigasi ulang ke WelcomeScreen untuk memuat ulang data)
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => const WelcomeScreen1()),
-          (Route<dynamic> route) => false,
-        );
+        await SoundHelper.playTransition();
+        if (mounted) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const WelcomeScreen1()),
+            (Route<dynamic> route) => false,
+          );
+        }
       } else {
         // Pengguna membatalkan pemilihan file
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Pemilihan file dibatalkan.'), backgroundColor: Colors.orangeAccent),
+          const SnackBar(
+            content: Text('Pemilihan file dibatalkan.'),
+            backgroundColor: Colors.orangeAccent,
+          ),
         );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text('Gagal mengimpor data: $e'),
-            backgroundColor: Colors.redAccent),
+          content: Text('Gagal mengimpor data: $e'),
+          backgroundColor: Colors.redAccent,
+        ),
       );
       print('Gagal mengimpor data: $e');
     }
@@ -168,8 +195,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios, color: lightGreenText),
-          onPressed: () {
-            Navigator.pop(context);
+          onPressed: () async {
+            await SoundHelper.playTransition();
+            if (mounted) {
+              Navigator.pop(context);
+            }
           },
         ),
         title: Text(
@@ -235,17 +265,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     context: context,
                     builder: (BuildContext context) {
                       return AlertDialog(
-                        backgroundColor: darkGreenBg, // Sesuaikan dengan tema Anda
-                        title: Text('Konfirmasi Penghapusan Data', style: TextStyle(color: lightGreenText)),
-                        content: Text('Apakah Anda yakin ingin menghapus SEMUA data aplikasi? Tindakan ini tidak dapat dibatalkan.', style: TextStyle(color: lightGreenText.withOpacity(0.8))),
+                        backgroundColor:
+                            darkGreenBg, // Sesuaikan dengan tema Anda
+                        title: Text(
+                          'Konfirmasi Penghapusan Data',
+                          style: TextStyle(color: lightGreenText),
+                        ),
+                        content: Text(
+                          'Apakah Anda yakin ingin menghapus SEMUA data aplikasi? Tindakan ini tidak dapat dibatalkan.',
+                          style: TextStyle(
+                            color: lightGreenText.withOpacity(0.8),
+                          ),
+                        ),
                         actions: <Widget>[
                           TextButton(
-                            onPressed: () => Navigator.of(context).pop(false), // Tidak jadi
-                            child: Text('Batal', style: TextStyle(color: lightGreenText)),
+                            onPressed: () =>
+                                Navigator.of(context).pop(false), // Tidak jadi
+                            child: Text(
+                              'Batal',
+                              style: TextStyle(color: lightGreenText),
+                            ),
                           ),
                           TextButton(
-                            onPressed: () => Navigator.of(context).pop(true), // Ya, hapus
-                            child: Text('Hapus', style: TextStyle(color: Colors.redAccent)),
+                            onPressed: () =>
+                                Navigator.of(context).pop(true), // Ya, hapus
+                            child: Text(
+                              'Hapus',
+                              style: TextStyle(color: Colors.redAccent),
+                            ),
                           ),
                         ],
                       );
@@ -277,7 +324,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onPressed: _logout,
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  backgroundColor: Colors.redAccent, // Warna merah untuk tombol logout
+                  backgroundColor:
+                      Colors.redAccent, // Warna merah untuk tombol logout
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30),
@@ -292,11 +340,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 20),
             Text(
               'Opsi lain akan datang di sini...',
-              style: TextStyle(fontSize: 16, color: lightGreenText.withOpacity(0.7)),
+              style: TextStyle(
+                fontSize: 16,
+                color: lightGreenText.withOpacity(0.7),
+              ),
             ),
           ],
         ),
       ),
     );
   }
-} 
+}

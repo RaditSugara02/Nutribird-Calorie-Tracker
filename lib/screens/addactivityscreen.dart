@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter_application_rpl_final/widgets/sound_helper.dart';
 
 class AddActivityScreen extends StatefulWidget {
-  final Function(String activityName, int caloriesBurned) onActivityAdded; // Callback
+  final Function(String activityName, int caloriesBurned)
+  onActivityAdded; // Callback
 
-  const AddActivityScreen({
-    super.key,
-    required this.onActivityAdded,
-  });
+  const AddActivityScreen({super.key, required this.onActivityAdded});
 
   @override
   State<AddActivityScreen> createState() => _AddActivityScreenState();
@@ -14,14 +14,26 @@ class AddActivityScreen extends StatefulWidget {
 
 class _AddActivityScreenState extends State<AddActivityScreen> {
   final TextEditingController _activityNameController = TextEditingController();
-  final TextEditingController _caloriesBurnedController = TextEditingController();
+  final TextEditingController _caloriesBurnedController =
+      TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  final AudioPlayer _audioPlayer = AudioPlayer();
 
   @override
   void dispose() {
     _activityNameController.dispose();
     _caloriesBurnedController.dispose();
+    _audioPlayer.dispose();
     super.dispose();
+  }
+
+  // Fungsi untuk memutar suara error
+  void _playErrorSound() {
+    try {
+      _audioPlayer.play(AssetSource('error.wav'));
+    } catch (e) {
+      print('Error playing sound: $e');
+    }
   }
 
   @override
@@ -43,7 +55,11 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
         ),
         title: Text(
           'Tambah Aktivitas',
-          style: TextStyle(color: lightGreenText, fontSize: 20, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: lightGreenText,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         centerTitle: true,
       ),
@@ -69,7 +85,7 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
                   fillColor: darkGreenBg,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(color: lightGreenText), 
+                    borderSide: BorderSide(color: lightGreenText),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
@@ -83,6 +99,7 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
+                    _playErrorSound();
                     return 'Nama aktivitas tidak boleh kosong';
                   }
                   return null;
@@ -105,7 +122,7 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
                   fillColor: darkGreenBg,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(color: lightGreenText), 
+                    borderSide: BorderSide(color: lightGreenText),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
@@ -119,9 +136,11 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
+                    _playErrorSound();
                     return 'Jumlah kalori tidak boleh kosong';
                   }
                   if (int.tryParse(value) == null || int.parse(value) <= 0) {
+                    _playErrorSound();
                     return 'Masukkan angka kalori yang valid (> 0)';
                   }
                   return null;
@@ -131,12 +150,20 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (_formKey.currentState!.validate()) {
                       final String activityName = _activityNameController.text;
-                      final int caloriesBurned = int.parse(_caloriesBurnedController.text);
+                      final int caloriesBurned = int.parse(
+                        _caloriesBurnedController.text,
+                      );
                       widget.onActivityAdded(activityName, caloriesBurned);
-                      Navigator.pop(context);
+                      // Play success sound ketika aktivitas berhasil ditambahkan
+                      await SoundHelper.playSuccess();
+                      await Future.delayed(const Duration(milliseconds: 300));
+                      // Kembali tanpa transisi sound
+                      if (mounted) {
+                        Navigator.pop(context);
+                      }
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -149,7 +176,7 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
                   ),
                   child: const Text(
                     'Tambahkan Aktivitas',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold), 
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
@@ -159,4 +186,4 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
       ),
     );
   }
-} 
+}

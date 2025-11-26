@@ -1,18 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_rpl_final/screens/selectbirthyearscreen.dart';
 import 'package:flutter_application_rpl_final/widgets/progress_bar.dart';
+import 'package:flutter_application_rpl_final/widgets/sound_helper.dart';
 
 class SelectGenderScreen extends StatefulWidget {
   final String name;
-  final String? email;
-  final String? password;
 
-  const SelectGenderScreen({
-    super.key,
-    required this.name,
-    this.email,
-    this.password,
-  });
+  const SelectGenderScreen({super.key, required this.name});
 
   @override
   State<SelectGenderScreen> createState() => _SelectGenderScreenState();
@@ -42,8 +36,11 @@ class _SelectGenderScreenState extends State<SelectGenderScreen> {
                 children: [
                   IconButton(
                     icon: Icon(Icons.arrow_back_ios, color: lightGreenText),
-                    onPressed: () {
-                      Navigator.pop(context);
+                    onPressed: () async {
+                      await SoundHelper.playTransition();
+                      if (mounted) {
+                        Navigator.pop(context);
+                      }
                     },
                   ),
                   Expanded(
@@ -85,7 +82,7 @@ class _SelectGenderScreenState extends State<SelectGenderScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (_selectedGender == null) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
@@ -93,17 +90,18 @@ class _SelectGenderScreenState extends State<SelectGenderScreen> {
                         ),
                       );
                     } else {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => SelectBirthYearScreen(
-                            name: widget.name,
-                            gender: _selectedGender!,
-                            email: widget.email ?? '',
-                            password: widget.password ?? '',
+                      await SoundHelper.playTransition();
+                      if (mounted) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SelectBirthYearScreen(
+                              name: widget.name,
+                              gender: _selectedGender!,
+                            ),
                           ),
-                        ),
-                      );
+                        );
+                      }
                     }
                   },
                   style: ElevatedButton.styleFrom(

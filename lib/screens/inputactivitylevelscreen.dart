@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_rpl_final/screens/inputgoalscreen.dart';
 import 'package:flutter_application_rpl_final/widgets/progress_bar.dart';
+import 'package:flutter_application_rpl_final/widgets/sound_helper.dart';
 
 class InputActivityLevelScreen extends StatefulWidget {
   final String name;
@@ -10,8 +11,6 @@ class InputActivityLevelScreen extends StatefulWidget {
   final int birthYear;
   final double height;
   final double weight;
-  final String? email;
-  final String? password;
 
   const InputActivityLevelScreen({
     super.key,
@@ -22,23 +21,31 @@ class InputActivityLevelScreen extends StatefulWidget {
     required this.birthYear,
     required this.height,
     required this.weight,
-    this.email,
-    this.password,
   });
 
   @override
-  State<InputActivityLevelScreen> createState() => _InputActivityLevelScreenState();
+  State<InputActivityLevelScreen> createState() =>
+      _InputActivityLevelScreenState();
 }
 
 class _InputActivityLevelScreenState extends State<InputActivityLevelScreen> {
   String? _selectedActivityLevel;
 
   final List<Map<String, String>> _activityLevels = [
-    {'level': 'Sangat Sedentari', 'description': 'Sedikit atau tanpa olahraga.'},
-    {'level': 'Ringan Aktif', 'description': 'Olahraga ringan 1-3 hari/minggu.'},
+    {
+      'level': 'Sangat Sedentari',
+      'description': 'Sedikit atau tanpa olahraga.',
+    },
+    {
+      'level': 'Ringan Aktif',
+      'description': 'Olahraga ringan 1-3 hari/minggu.',
+    },
     {'level': 'Cukup Aktif', 'description': 'Olahraga sedang 3-5 hari/minggu.'},
     {'level': 'Sangat Aktif', 'description': 'Olahraga berat 6-7 hari/minggu.'},
-    {'level': 'Ekstra Aktif', 'description': 'Olahraga sangat berat & pekerjaan fisik.'},
+    {
+      'level': 'Ekstra Aktif',
+      'description': 'Olahraga sangat berat & pekerjaan fisik.',
+    },
   ];
 
   @override
@@ -59,13 +66,18 @@ class _InputActivityLevelScreenState extends State<InputActivityLevelScreen> {
               children: [
                 IconButton(
                   icon: Icon(Icons.arrow_back_ios, color: lightGreenText),
-                  onPressed: () {
-                    Navigator.pop(context);
+                  onPressed: () async {
+                    await SoundHelper.playTransition();
+                    if (mounted) {
+                      Navigator.pop(context);
+                    }
                   },
                 ),
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.only(right: 20.0), // Adjust padding as needed
+                    padding: const EdgeInsets.only(
+                      right: 20.0,
+                    ), // Adjust padding as needed
                     child: ProgressBar(currentStep: 6, totalSteps: 7),
                   ),
                 ),
@@ -109,29 +121,32 @@ class _InputActivityLevelScreenState extends State<InputActivityLevelScreen> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   if (_selectedActivityLevel == null) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Mohon pilih tingkat aktivitas Anda')),
-                    );
-                  } else {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => InputGoalScreen(
-                          name: widget.name,
-                          gender: widget.gender,
-                          birthDay: widget.birthDay,
-                          birthMonth: widget.birthMonth,
-                          birthYear: widget.birthYear,
-                          height: widget.height,
-                          weight: widget.weight,
-                          activityLevel: _selectedActivityLevel!,
-                          email: widget.email ?? '',
-                          password: widget.password ?? '',
-                        ),
+                      const SnackBar(
+                        content: Text('Mohon pilih tingkat aktivitas Anda'),
                       ),
                     );
+                  } else {
+                    await SoundHelper.playTransition();
+                    if (mounted) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => InputGoalScreen(
+                            name: widget.name,
+                            gender: widget.gender,
+                            birthDay: widget.birthDay,
+                            birthMonth: widget.birthMonth,
+                            birthYear: widget.birthYear,
+                            height: widget.height,
+                            weight: widget.weight,
+                            activityLevel: _selectedActivityLevel!,
+                          ),
+                        ),
+                      );
+                    }
                   }
                 },
                 style: ElevatedButton.styleFrom(
@@ -154,7 +169,11 @@ class _InputActivityLevelScreenState extends State<InputActivityLevelScreen> {
     );
   }
 
-  Widget _buildActivityLevelOption(BuildContext context, String level, String description) {
+  Widget _buildActivityLevelOption(
+    BuildContext context,
+    String level,
+    String description,
+  ) {
     final Color darkGreenBg = const Color(0xFF1D362C);
     final Color lightGreenText = const Color(0xFFA2F46E);
     final Color darkText = const Color(0xFF112D21);
@@ -194,7 +213,9 @@ class _InputActivityLevelScreenState extends State<InputActivityLevelScreen> {
               description,
               style: TextStyle(
                 fontSize: 14,
-                color: isSelected ? darkText.withOpacity(0.8) : lightGreenText.withOpacity(0.8),
+                color: isSelected
+                    ? darkText.withOpacity(0.8)
+                    : lightGreenText.withOpacity(0.8),
               ),
             ),
           ],
@@ -202,4 +223,4 @@ class _InputActivityLevelScreenState extends State<InputActivityLevelScreen> {
       ),
     );
   }
-} 
+}

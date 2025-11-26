@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter_application_rpl_final/widgets/sound_helper.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -18,6 +20,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final _weightController = TextEditingController();
   String? _selectedActivityLevel;
   String? _selectedGoal;
+  final AudioPlayer _audioPlayer = AudioPlayer();
 
   final List<String> _genders = ['Laki-laki', 'Perempuan'];
   final List<String> _activityLevels = [
@@ -65,6 +68,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _birthYearController.dispose();
     _heightController.dispose();
     _weightController.dispose();
+    _audioPlayer.dispose();
     super.dispose();
   }
 
@@ -81,8 +85,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: lightGreenText),
-          onPressed: () {
-            Navigator.of(context).pop();
+          onPressed: () async {
+            await SoundHelper.playTransition();
+            if (mounted) {
+              Navigator.of(context).pop();
+            }
           },
         ),
         title: Text(
@@ -226,7 +233,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final Color lightGreenText = const Color(0xFFA2F46E);
 
     return DropdownButtonFormField<String>(
-      initialValue: selectedValue,
+      value: selectedValue,
+      isExpanded: true, // Allow dropdown to expand and handle long text
       decoration: InputDecoration(
         labelText: label,
         labelStyle: TextStyle(color: lightGreenText.withOpacity(0.7)),
@@ -246,9 +254,23 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       items: items.map<DropdownMenuItem<String>>((String value) {
         return DropdownMenuItem<String>(
           value: value,
-          child: Text(value, overflow: TextOverflow.ellipsis, maxLines: 1),
+          child: Text(
+            value,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 2, // Allow 2 lines in dropdown items
+          ),
         );
       }).toList(),
+      selectedItemBuilder: (BuildContext context) {
+        return items.map<Widget>((String value) {
+          return Text(
+            value,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+            style: TextStyle(color: lightGreenText, fontSize: 16),
+          );
+        }).toList();
+      },
       onChanged: onChanged,
     );
   }
@@ -414,7 +436,27 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     await prefs.setString('user_profile_data', jsonEncode(newProfileData));
 
+    // Play success sound setelah data berhasil disimpan
+    // File ada di folder assets/ di root project
+    // AudioPlayer menambahkan prefix "assets/" secara otomatis, jadi cukup gunakan nama file
+    try {
+      await _audioPlayer.play(AssetSource('success.wav'));
+
+      // Tunggu suara selesai diputar sebelum navigasi
+      // Durasi suara biasanya sekitar 1-2 detik, tunggu 2 detik untuk memastikan
+      await Future.delayed(Duration(milliseconds: 2000));
+    } catch (e) {
+      print('Error playing sound: $e');
+      // Jika error, tetap lanjutkan navigasi setelah delay singkat
+      await Future.delayed(Duration(milliseconds: 300));
+    }
+
+    // Play transition sound sebelum kembali
+    await SoundHelper.playTransition();
+
     // Kembali ke halaman sebelumnya dan beri tahu bahwa perubahan berhasil disimpan
-    Navigator.of(context).pop(true);
+    if (mounted) {
+      Navigator.of(context).pop(true);
+    }
   }
 }

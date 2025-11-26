@@ -13,7 +13,6 @@ class ProgressBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Color lightGreenText = const Color(0xFFA2F46E);
-    final Color darkGreenBg = const Color(0xFF1D362C);
 
     return Column(
       children: [

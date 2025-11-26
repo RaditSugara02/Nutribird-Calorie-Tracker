@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_rpl_final/screens/dashboardscreen.dart';
+import 'package:flutter_application_rpl_final/screens/addweightscreen.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
+import 'package:flutter_application_rpl_final/widgets/sound_helper.dart';
 
 class StatisticsScreen extends StatefulWidget {
   final List<WeightEntry> weightEntries;
@@ -12,9 +16,12 @@ class StatisticsScreen extends StatefulWidget {
 }
 
 class StatisticsScreenState extends State<StatisticsScreen> {
+  late List<WeightEntry> _entries;
+
   @override
   void initState() {
     super.initState();
+    _entries = List.from(widget.weightEntries);
   }
 
   @override
@@ -24,6 +31,9 @@ class StatisticsScreenState extends State<StatisticsScreen> {
       print(
         'StatisticsScreen: weightEntries updated! New length: ${widget.weightEntries.length}',
       );
+      setState(() {
+        _entries = List.from(widget.weightEntries);
+      });
     }
   }
 
@@ -31,13 +41,12 @@ class StatisticsScreenState extends State<StatisticsScreen> {
   Widget build(BuildContext context) {
     final Color darkGreenBg = const Color(0xFF1D362C);
     final Color lightGreenText = const Color(0xFFA2F46E);
-    final Color darkText = const Color(0xFF112D21);
 
     List<FlSpot> spots = [];
     List<WeightEntry> sortedEntries = [];
 
-    if (widget.weightEntries.isNotEmpty) {
-      sortedEntries = List.from(widget.weightEntries);
+    if (_entries.isNotEmpty) {
+      sortedEntries = List.from(_entries);
       sortedEntries.sort((a, b) => a.date.compareTo(b.date));
 
       for (int i = 0; i < sortedEntries.length; i++) {
@@ -45,17 +54,11 @@ class StatisticsScreenState extends State<StatisticsScreen> {
       }
     }
 
-    double minWeight = widget.weightEntries.isNotEmpty
-        ? widget.weightEntries
-                  .map((e) => e.weight)
-                  .reduce((a, b) => a < b ? a : b) -
-              5
+    double minWeight = _entries.isNotEmpty
+        ? _entries.map((e) => e.weight).reduce((a, b) => a < b ? a : b) - 5
         : 0;
-    double maxWeight = widget.weightEntries.isNotEmpty
-        ? widget.weightEntries
-                  .map((e) => e.weight)
-                  .reduce((a, b) => a > b ? a : b) +
-              5
+    double maxWeight = _entries.isNotEmpty
+        ? _entries.map((e) => e.weight).reduce((a, b) => a > b ? a : b) + 5
         : 100;
 
     return Scaffold(
@@ -65,7 +68,7 @@ class StatisticsScreenState extends State<StatisticsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (widget.weightEntries.isEmpty)
+            if (_entries.isEmpty)
               Center(
                 child: Text(
                   'Belum ada data berat badan yang dicatat.',
@@ -185,13 +188,44 @@ class StatisticsScreenState extends State<StatisticsScreen> {
                 ),
               ),
               const SizedBox(height: 30),
-              Text(
-                'Riwayat Berat Badan',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: lightGreenText,
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Riwayat Berat Badan',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: lightGreenText,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () async {
+                      await SoundHelper.playTransition();
+                      if (!mounted) return;
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AddWeightScreen(
+                            onWeightAdded: (weight) {
+                              _addWeight(weight);
+                            },
+                          ),
+                        ),
+                      );
+                      // Refresh data setelah kembali dari AddWeightScreen
+                      if (mounted) {
+                        await _loadWeightEntries();
+                      }
+                    },
+                    icon: Icon(
+                      Icons.add_circle_outline,
+                      color: lightGreenText,
+                      size: 32,
+                    ),
+                    tooltip: 'Catat Berat Badan',
+                  ),
+                ],
               ),
               const SizedBox(height: 10),
               // Menampilkan daftar berat badan secara tradisional juga (opsional)
@@ -199,9 +233,9 @@ class StatisticsScreenState extends State<StatisticsScreen> {
                 shrinkWrap: true,
                 physics:
                     const NeverScrollableScrollPhysics(), // Menonaktifkan scroll ListView
-                itemCount: widget.weightEntries.length,
+                itemCount: _entries.length,
                 itemBuilder: (context, index) {
-                  final entry = widget.weightEntries[index];
+                  final entry = _entries[index];
                   return Card(
                     color: darkGreenBg,
                     elevation: 0,
@@ -225,13 +259,21 @@ class StatisticsScreenState extends State<StatisticsScreen> {
                               color: lightGreenText.withOpacity(0.8),
                             ),
                           ),
-                          Text(
-                            '${entry.weight.toStringAsFixed(1)} kg',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: lightGreenText,
-                            ),
+                          Row(
+                            children: [
+                              Text(
+                                '${entry.weight.toStringAsFixed(1)} kg',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: lightGreenText,
+                                ),
+                              ),
+                              IconButton(
+                                onPressed: () => _showEditWeightDialog(index),
+                                icon: Icon(Icons.edit, color: lightGreenText),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -244,5 +286,134 @@ class StatisticsScreenState extends State<StatisticsScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _showEditWeightDialog(int index) async {
+    final entry = _entries[index];
+    final controller = TextEditingController(
+      text: entry.weight.toStringAsFixed(1),
+    );
+
+    final result = await showDialog<double>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF1D362C),
+          title: const Text(
+            'Ubah Berat Badan',
+            style: TextStyle(color: Color(0xFFA2F46E)),
+          ),
+          content: TextField(
+            controller: controller,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            style: const TextStyle(color: Color(0xFFA2F46E)),
+            decoration: const InputDecoration(
+              labelText: 'Berat (kg)',
+              labelStyle: TextStyle(color: Color(0xFFA2F46E)),
+              enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFFA2F46E)),
+              ),
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFFA2F46E)),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                await SoundHelper.playTransition();
+                if (mounted) {
+                  Navigator.pop(context);
+                }
+              },
+              child: const Text(
+                'Batal',
+                style: TextStyle(color: Color(0xFFA2F46E)),
+              ),
+            ),
+            TextButton(
+              onPressed: () async {
+                final newWeight = double.tryParse(controller.text);
+                if (newWeight != null && newWeight > 0) {
+                  await SoundHelper.playTransition();
+                  if (mounted) {
+                    Navigator.pop(context, newWeight);
+                  }
+                }
+              },
+              child: const Text(
+                'Simpan',
+                style: TextStyle(color: Color(0xFFA2F46E)),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (result != null) {
+      setState(() {
+        _entries[index] = WeightEntry(weight: result, date: entry.date);
+      });
+      await _persistWeightEntries();
+    }
+  }
+
+  Future<void> _addWeight(double weight) async {
+    final newEntry = WeightEntry(weight: weight, date: DateTime.now());
+
+    // Tambahkan ke entries dan simpan
+    setState(() {
+      _entries.add(newEntry);
+      // Urutkan berdasarkan tanggal (terbaru di atas)
+      _entries.sort((a, b) => b.date.compareTo(a.date));
+    });
+
+    await _persistWeightEntries();
+
+    // Refresh data dari SharedPreferences untuk memastikan sinkronisasi
+    if (mounted) {
+      await _loadWeightEntries();
+    }
+  }
+
+  Future<void> _loadWeightEntries() async {
+    final prefs = await SharedPreferences.getInstance();
+    final List<String>? weightEntriesJson = prefs.getStringList(
+      'all_weight_entries',
+    );
+
+    if (weightEntriesJson != null) {
+      setState(() {
+        _entries = weightEntriesJson
+            .map((entryJson) => WeightEntry.fromJson(jsonDecode(entryJson)))
+            .toList();
+        _entries.sort((a, b) => b.date.compareTo(a.date));
+      });
+    }
+  }
+
+  Future<void> _persistWeightEntries() async {
+    final prefs = await SharedPreferences.getInstance();
+    final List<String> entriesJson = _entries
+        .map((entry) => jsonEncode(entry.toJson()))
+        .toList();
+    await prefs.setStringList('all_weight_entries', entriesJson);
+
+    // Update profil user dengan berat badan terbaru
+    if (_entries.isNotEmpty) {
+      // Urutkan berdasarkan tanggal (terbaru di atas)
+      final List<WeightEntry> sorted = List.from(_entries)
+        ..sort((a, b) => b.date.compareTo(a.date));
+      final double latestWeight = sorted.first.weight;
+
+      final String? profileJson = prefs.getString('user_profile_data');
+      if (profileJson != null) {
+        final Map<String, dynamic> profileData = jsonDecode(profileJson);
+        profileData['weight'] = latestWeight; // Update berat badan di profil
+        await prefs.setString('user_profile_data', jsonEncode(profileData));
+        print('User profile weight updated to: $latestWeight kg');
+      }
+    }
   }
 }

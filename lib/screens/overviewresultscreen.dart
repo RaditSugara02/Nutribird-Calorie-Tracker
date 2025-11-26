@@ -3,6 +3,7 @@ import 'package:flutter_application_rpl_final/screens/dashboardscreen.dart';
 import 'package:flutter_application_rpl_final/screens/inputnamescreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'package:flutter_application_rpl_final/widgets/sound_helper.dart';
 
 class OverviewResultScreen extends StatelessWidget {
   final String name;
@@ -14,8 +15,6 @@ class OverviewResultScreen extends StatelessWidget {
   final double weight;
   final String activityLevel;
   final String goal;
-  final String? email;
-  final String? password;
 
   const OverviewResultScreen({
     super.key,
@@ -28,8 +27,6 @@ class OverviewResultScreen extends StatelessWidget {
     required this.weight,
     required this.activityLevel,
     required this.goal,
-    this.email,
-    this.password,
   });
 
   // Method untuk menyimpan data profil pengguna
@@ -120,8 +117,6 @@ class OverviewResultScreen extends StatelessWidget {
       'weight': weight,
       'activityLevel': activityLevel,
       'goal': goal,
-      'email': email ?? '', // Simpan email
-      'password': password ?? '', // Simpan password
       'dailyCalories': dailyCalories.round(),
       'proteinGrams': proteinGrams.round(),
       'fatGrams': fatGrams.round(),
@@ -131,6 +126,32 @@ class OverviewResultScreen extends StatelessWidget {
 
     await prefs.setString('user_profile_data', jsonEncode(userProfileData));
     print('User Profile Saved: ${jsonEncode(userProfileData)}');
+
+    await _ensureInitialWeightEntry(prefs);
+  }
+
+  Future<void> _ensureInitialWeightEntry(SharedPreferences prefs) async {
+    final List<String>? existingEntriesJson = prefs.getStringList(
+      'all_weight_entries',
+    );
+    final List<Map<String, dynamic>> existingEntries =
+        existingEntriesJson
+            ?.map((entry) => jsonDecode(entry) as Map<String, dynamic>)
+            .toList() ??
+        [];
+
+    if (existingEntries.isEmpty) {
+      final newEntry = {
+        'weight': weight,
+        'date': DateTime.now().toIso8601String(),
+      };
+      existingEntries.add(newEntry);
+      await prefs.setStringList(
+        'all_weight_entries',
+        existingEntries.map((entry) => jsonEncode(entry)).toList(),
+      );
+      print('Initial weight entry added: $newEntry');
+    }
   }
 
   @override
@@ -332,13 +353,6 @@ class OverviewResultScreen extends StatelessWidget {
                     const SizedBox(height: 15),
                     _buildInfoRow('Nama', name, lightGreenText),
                     const SizedBox(height: 10),
-                    if (email != null && email!.isNotEmpty)
-                      _buildInfoRow(
-                        'Email',
-                        email!,
-                        lightGreenText,
-                      ), // Tampilkan email
-                    const SizedBox(height: 10),
                     _buildInfoRow('Gender', gender, lightGreenText),
                     const SizedBox(height: 10),
                     _buildInfoRow(
@@ -381,6 +395,7 @@ class OverviewResultScreen extends StatelessWidget {
                 onPressed: () async {
                   // Pastikan data profil telah disimpan sebelum navigasi
                   await _saveUserProfile();
+                  await SoundHelper.playTransition();
                   Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(
@@ -407,7 +422,8 @@ class OverviewResultScreen extends StatelessWidget {
             Align(
               alignment: Alignment.center,
               child: TextButton(
-                onPressed: () {
+                onPressed: () async {
+                  await SoundHelper.playTransition();
                   Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(

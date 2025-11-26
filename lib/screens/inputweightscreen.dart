@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_rpl_final/screens/inputactivitylevelscreen.dart';
 import 'package:flutter_application_rpl_final/widgets/progress_bar.dart';
+import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter_application_rpl_final/widgets/sound_helper.dart';
 
 class InputWeightScreen extends StatefulWidget {
   final String name;
@@ -9,8 +11,6 @@ class InputWeightScreen extends StatefulWidget {
   final int birthMonth;
   final int birthYear;
   final double height;
-  final String? email;
-  final String? password;
 
   const InputWeightScreen({
     super.key,
@@ -20,8 +20,6 @@ class InputWeightScreen extends StatefulWidget {
     required this.birthMonth,
     required this.birthYear,
     required this.height,
-    this.email,
-    this.password,
   });
 
   @override
@@ -31,11 +29,22 @@ class InputWeightScreen extends StatefulWidget {
 class _InputWeightScreenState extends State<InputWeightScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _weightController = TextEditingController();
+  final AudioPlayer _audioPlayer = AudioPlayer();
 
   @override
   void dispose() {
     _weightController.dispose();
+    _audioPlayer.dispose();
     super.dispose();
+  }
+
+  // Fungsi untuk memutar suara error
+  void _playErrorSound() {
+    try {
+      _audioPlayer.play(AssetSource('error.wav'));
+    } catch (e) {
+      print('Error playing sound: $e');
+    }
   }
 
   @override
@@ -58,13 +67,18 @@ class _InputWeightScreenState extends State<InputWeightScreen> {
                 children: [
                   IconButton(
                     icon: Icon(Icons.arrow_back_ios, color: lightGreenText),
-                    onPressed: () {
-                      Navigator.pop(context);
+                    onPressed: () async {
+                      await SoundHelper.playTransition();
+                      if (mounted) {
+                        Navigator.pop(context);
+                      }
                     },
                   ),
                   Expanded(
                     child: Padding(
-                      padding: const EdgeInsets.only(right: 20.0), // Adjust padding as needed
+                      padding: const EdgeInsets.only(
+                        right: 20.0,
+                      ), // Adjust padding as needed
                       child: ProgressBar(currentStep: 5, totalSteps: 7),
                     ),
                   ),
@@ -121,13 +135,16 @@ class _InputWeightScreenState extends State<InputWeightScreen> {
                 keyboardType: TextInputType.number,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
+                    _playErrorSound();
                     return 'Berat badan tidak boleh kosong';
                   }
                   final double? weight = double.tryParse(value);
                   if (weight == null) {
+                    _playErrorSound();
                     return 'Masukkan angka yang valid';
                   }
                   if (weight < 1 || weight > 600) {
+                    _playErrorSound();
                     return 'Berat badan harus antara 1 kg dan 600 kg';
                   }
                   return null;
@@ -137,24 +154,25 @@ class _InputWeightScreenState extends State<InputWeightScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (_formKey.currentState!.validate()) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => InputActivityLevelScreen(
-                            name: widget.name,
-                            gender: widget.gender,
-                            birthDay: widget.birthDay,
-                            birthMonth: widget.birthMonth,
-                            birthYear: widget.birthYear,
-                            height: widget.height,
-                            weight: double.parse(_weightController.text),
-                            email: widget.email ?? '',
-                            password: widget.password ?? '',
+                      await SoundHelper.playTransition();
+                      if (mounted) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => InputActivityLevelScreen(
+                              name: widget.name,
+                              gender: widget.gender,
+                              birthDay: widget.birthDay,
+                              birthMonth: widget.birthMonth,
+                              birthYear: widget.birthYear,
+                              height: widget.height,
+                              weight: double.parse(_weightController.text),
+                            ),
                           ),
-                        ),
-                      );
+                        );
+                      }
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -177,4 +195,4 @@ class _InputWeightScreenState extends State<InputWeightScreen> {
       ),
     );
   }
-} 
+}

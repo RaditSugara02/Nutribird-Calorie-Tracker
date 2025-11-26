@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_rpl_final/screens/loadingscreen.dart';
 import 'package:flutter_application_rpl_final/widgets/progress_bar.dart';
+import 'package:flutter_application_rpl_final/widgets/sound_helper.dart';
 
 class InputGoalScreen extends StatefulWidget {
   final String name;
@@ -11,8 +12,6 @@ class InputGoalScreen extends StatefulWidget {
   final double height;
   final double weight;
   final String activityLevel;
-  final String? email;
-  final String? password;
 
   const InputGoalScreen({
     super.key,
@@ -24,8 +23,6 @@ class InputGoalScreen extends StatefulWidget {
     required this.height,
     required this.weight,
     required this.activityLevel,
-    this.email,
-    this.password,
   });
 
   @override
@@ -61,13 +58,18 @@ class _InputGoalScreenState extends State<InputGoalScreen> {
               children: [
                 IconButton(
                   icon: Icon(Icons.arrow_back_ios, color: lightGreenText),
-                  onPressed: () {
-                    Navigator.pop(context);
+                  onPressed: () async {
+                    await SoundHelper.playTransition();
+                    if (mounted) {
+                      Navigator.pop(context);
+                    }
                   },
                 ),
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.only(right: 20.0), // Adjust padding as needed
+                    padding: const EdgeInsets.only(
+                      right: 20.0,
+                    ), // Adjust padding as needed
                     child: ProgressBar(currentStep: 7, totalSteps: 7),
                   ),
                 ),
@@ -99,10 +101,7 @@ class _InputGoalScreenState extends State<InputGoalScreen> {
                 final goal = _goals[index];
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 15.0),
-                  child: _buildGoalOption(
-                    context,
-                    goal,
-                  ),
+                  child: _buildGoalOption(context, goal),
                 );
               },
             ),
@@ -110,30 +109,31 @@ class _InputGoalScreenState extends State<InputGoalScreen> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   if (_selectedGoal == null) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Mohon pilih tujuan Anda')),
                     );
                   } else {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => LoadingScreen(
-                          name: widget.name,
-                          gender: widget.gender,
-                          birthDay: widget.birthDay,
-                          birthMonth: widget.birthMonth,
-                          birthYear: widget.birthYear,
-                          height: widget.height,
-                          weight: widget.weight,
-                          activityLevel: widget.activityLevel,
-                          goal: _selectedGoal!,
-                          email: widget.email ?? '',
-                          password: widget.password ?? '',
+                    await SoundHelper.playTransition();
+                    if (mounted) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => LoadingScreen(
+                            name: widget.name,
+                            gender: widget.gender,
+                            birthDay: widget.birthDay,
+                            birthMonth: widget.birthMonth,
+                            birthYear: widget.birthYear,
+                            height: widget.height,
+                            weight: widget.weight,
+                            activityLevel: widget.activityLevel,
+                            goal: _selectedGoal!,
+                          ),
                         ),
-                      ),
-                    );
+                      );
+                    }
                   }
                 },
                 style: ElevatedButton.styleFrom(
@@ -203,4 +203,4 @@ class _InputGoalScreenState extends State<InputGoalScreen> {
       ),
     );
   }
-} 
+}

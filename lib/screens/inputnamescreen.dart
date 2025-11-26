@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_rpl_final/screens/selectgenderscreen.dart';
 import 'package:flutter_application_rpl_final/widgets/progress_bar.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 class InputNameScreen extends StatefulWidget {
-  final String? email;
-  final String? password;
-
-  const InputNameScreen({super.key, this.email, this.password});
+  const InputNameScreen({super.key});
 
   @override
   State<InputNameScreen> createState() => _InputNameScreenState();
@@ -15,11 +13,31 @@ class InputNameScreen extends StatefulWidget {
 class _InputNameScreenState extends State<InputNameScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
+  final AudioPlayer _audioPlayer = AudioPlayer();
 
   @override
   void dispose() {
     _nameController.dispose();
+    _audioPlayer.dispose();
     super.dispose();
+  }
+
+  // Fungsi untuk memutar suara error
+  void _playErrorSound() {
+    try {
+      _audioPlayer.play(AssetSource('error.wav'));
+    } catch (e) {
+      print('Error playing sound: $e');
+    }
+  }
+
+  // Fungsi untuk memutar suara transisi
+  Future<void> _playTransitionSound() async {
+    try {
+      await _audioPlayer.play(AssetSource('transition.wav'));
+    } catch (e) {
+      print('Error playing transition sound: $e');
+    }
   }
 
   @override
@@ -42,13 +60,18 @@ class _InputNameScreenState extends State<InputNameScreen> {
                 children: [
                   IconButton(
                     icon: Icon(Icons.arrow_back_ios, color: lightGreenText),
-                    onPressed: () {
-                      Navigator.pop(context);
+                    onPressed: () async {
+                      await _playTransitionSound();
+                      if (mounted) {
+                        Navigator.pop(context);
+                      }
                     },
                   ),
                   Expanded(
                     child: Padding(
-                      padding: const EdgeInsets.only(right: 20.0), // Adjust padding as needed
+                      padding: const EdgeInsets.only(
+                        right: 20.0,
+                      ), // Adjust padding as needed
                       child: ProgressBar(currentStep: 1, totalSteps: 7),
                     ),
                   ),
@@ -103,6 +126,7 @@ class _InputNameScreenState extends State<InputNameScreen> {
                 keyboardType: TextInputType.text,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
+                    _playErrorSound();
                     return 'Nama tidak boleh kosong';
                   }
                   return null;
@@ -112,18 +136,18 @@ class _InputNameScreenState extends State<InputNameScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (_formKey.currentState!.validate()) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => SelectGenderScreen(
-                            name: _nameController.text,
-                            email: widget.email ?? '',
-                            password: widget.password ?? '',
+                      await _playTransitionSound();
+                      if (mounted) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                SelectGenderScreen(name: _nameController.text),
                           ),
-                        ),
-                      );
+                        );
+                      }
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -146,4 +170,4 @@ class _InputNameScreenState extends State<InputNameScreen> {
       ),
     );
   }
-} 
+}

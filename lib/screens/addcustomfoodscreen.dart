@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_rpl_final/screens/dashboardscreen.dart'; // Import FoodEntry
+import 'package:flutter_application_rpl_final/screens/dashboardscreen.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter_application_rpl_final/widgets/sound_helper.dart';
 
 class AddCustomFoodScreen extends StatefulWidget {
   final Function(
@@ -9,6 +14,7 @@ class AddCustomFoodScreen extends StatefulWidget {
     double? protein,
     double? fat,
     double? carb,
+    String? imagePath,
   )
   onFoodAdded;
 
@@ -26,6 +32,9 @@ class _AddCustomFoodScreenState extends State<AddCustomFoodScreen> {
   final TextEditingController _carbController = TextEditingController();
   String? _selectedMealType;
   final _formKey = GlobalKey<FormState>();
+  File? _imageFile;
+  final ImagePicker _picker = ImagePicker();
+  final AudioPlayer _audioPlayer = AudioPlayer();
 
   final List<String> _mealTypes = [
     'Sarapan',
@@ -41,7 +50,38 @@ class _AddCustomFoodScreenState extends State<AddCustomFoodScreen> {
     _proteinController.dispose();
     _fatController.dispose();
     _carbController.dispose();
+    _audioPlayer.dispose();
     super.dispose();
+  }
+
+  // Fungsi untuk memutar suara error
+  void _playErrorSound() {
+    try {
+      _audioPlayer.play(AssetSource('error.wav'));
+    } catch (e) {
+      print('Error playing sound: $e');
+    }
+  }
+
+  Future<void> _pickImage() async {
+    final XFile? pickedFile = await _picker.pickImage(
+      source: ImageSource.gallery,
+    );
+
+    if (pickedFile != null) {
+      final appDocDir = await getApplicationDocumentsDirectory();
+      final String uniqueFileName =
+          '${DateTime.now().millisecondsSinceEpoch}_${pickedFile.name.split('.').last}';
+      final File newImage = await File(
+        pickedFile.path,
+      ).copy('${appDocDir.path}/$uniqueFileName');
+
+      setState(() {
+        _imageFile = newImage;
+      });
+    } else {
+      print('No image selected.');
+    }
   }
 
   @override
@@ -57,8 +97,11 @@ class _AddCustomFoodScreenState extends State<AddCustomFoodScreen> {
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios, color: lightGreenText),
-          onPressed: () {
-            Navigator.pop(context);
+          onPressed: () async {
+            await SoundHelper.playTransition();
+            if (mounted) {
+              Navigator.pop(context);
+            }
           },
         ),
         title: Text(
@@ -78,6 +121,52 @@ class _AddCustomFoodScreenState extends State<AddCustomFoodScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Tombol untuk menambahkan foto
+              Text(
+                'Foto Makanan (Opsional)',
+                style: TextStyle(fontSize: 16, color: lightGreenText),
+              ),
+              const SizedBox(height: 8),
+              GestureDetector(
+                onTap: _pickImage,
+                child: Container(
+                  height: 200,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: lightGreenText.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: lightGreenText.withOpacity(0.5),
+                      width: 1,
+                    ),
+                  ),
+                  child: _imageFile != null
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Image.file(_imageFile!, fit: BoxFit.cover),
+                        )
+                      : Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.add_a_photo,
+                                color: lightGreenText,
+                                size: 50,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Ketuk untuk Tambah Foto',
+                                style: TextStyle(
+                                  color: lightGreenText.withOpacity(0.7),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                ),
+              ),
+              const SizedBox(height: 20),
               Text(
                 'Nama Makanan',
                 style: TextStyle(fontSize: 16, color: lightGreenText),
@@ -107,6 +196,7 @@ class _AddCustomFoodScreenState extends State<AddCustomFoodScreen> {
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
+                    _playErrorSound();
                     return 'Nama makanan tidak boleh kosong';
                   }
                   return null;
@@ -158,6 +248,7 @@ class _AddCustomFoodScreenState extends State<AddCustomFoodScreen> {
                 },
                 validator: (value) {
                   if (value == null || value.isEmpty) {
+                    _playErrorSound();
                     return 'Pilih jenis makanan';
                   }
                   return null;
@@ -195,9 +286,11 @@ class _AddCustomFoodScreenState extends State<AddCustomFoodScreen> {
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
+                    _playErrorSound();
                     return 'Jumlah kalori tidak boleh kosong';
                   }
                   if (int.tryParse(value) == null || int.parse(value) <= 0) {
+                    _playErrorSound();
                     return 'Masukkan angka kalori yang valid (> 0)';
                   }
                   return null;
@@ -238,6 +331,7 @@ class _AddCustomFoodScreenState extends State<AddCustomFoodScreen> {
                   if (value != null &&
                       value.isNotEmpty &&
                       double.tryParse(value) == null) {
+                    _playErrorSound();
                     return 'Masukkan angka yang valid untuk protein';
                   }
                   return null;
@@ -278,6 +372,7 @@ class _AddCustomFoodScreenState extends State<AddCustomFoodScreen> {
                   if (value != null &&
                       value.isNotEmpty &&
                       double.tryParse(value) == null) {
+                    _playErrorSound();
                     return 'Masukkan angka yang valid untuk lemak';
                   }
                   return null;
@@ -318,6 +413,7 @@ class _AddCustomFoodScreenState extends State<AddCustomFoodScreen> {
                   if (value != null &&
                       value.isNotEmpty &&
                       double.tryParse(value) == null) {
+                    _playErrorSound();
                     return 'Masukkan angka yang valid untuk karbohidrat';
                   }
                   return null;
@@ -328,7 +424,7 @@ class _AddCustomFoodScreenState extends State<AddCustomFoodScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (_formKey.currentState!.validate()) {
                       final String foodName = _foodNameController.text;
                       final int calories = int.parse(_calorieController.text);
@@ -348,11 +444,15 @@ class _AddCustomFoodScreenState extends State<AddCustomFoodScreen> {
                         protein: protein,
                         fat: fat,
                         carb: carb,
+                        imagePath: _imageFile?.path,
                       );
-                      Navigator.pop(
-                        context,
-                        newFoodEntry,
-                      ); // Mengembalikan FoodEntry
+                      await SoundHelper.playTransition();
+                      if (mounted) {
+                        Navigator.pop(
+                          context,
+                          newFoodEntry,
+                        ); // Mengembalikan FoodEntry
+                      }
                     }
                   },
                   style: ElevatedButton.styleFrom(

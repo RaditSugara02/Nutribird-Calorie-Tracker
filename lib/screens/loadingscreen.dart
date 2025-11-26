@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_rpl_final/screens/overviewresultscreen.dart'; // Akan dibuat selanjutnya
-import 'dart:async'; // Import untuk Timer
+import 'package:flutter_application_rpl_final/screens/overviewresultscreen.dart';
+import 'dart:async';
+import 'package:flutter_application_rpl_final/widgets/sound_helper.dart';
 
 class LoadingScreen extends StatefulWidget {
   final String name;
@@ -12,8 +13,6 @@ class LoadingScreen extends StatefulWidget {
   final double weight;
   final String activityLevel;
   final String goal;
-  final String? email;
-  final String? password;
 
   const LoadingScreen({
     super.key,
@@ -26,8 +25,6 @@ class LoadingScreen extends StatefulWidget {
     required this.weight,
     required this.activityLevel,
     required this.goal,
-    this.email,
-    this.password,
   });
 
   @override
@@ -56,7 +53,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
       }
       setState(() {
         currentStep++;
-        _progress = currentStep / steps; 
+        _progress = currentStep / steps;
         if (_progress >= 1.0) {
           _progress = 1.0; // Ensure it doesn't exceed 1.0
           timer.cancel();
@@ -68,25 +65,27 @@ class _LoadingScreenState extends State<LoadingScreen> {
 
   Future<void> _navigateToOverview() async {
     if (!mounted) return;
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(
-        builder: (context) => OverviewResultScreen(
-          name: widget.name,
-          gender: widget.gender,
-          birthDay: widget.birthDay,
-          birthMonth: widget.birthMonth,
-          birthYear: widget.birthYear,
-          height: widget.height,
-          weight: widget.weight,
-          activityLevel: widget.activityLevel,
-          goal: widget.goal,
-          email: widget.email ?? '',
-          password: widget.password ?? '',
+    await SoundHelper.playTransition();
+    if (mounted) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (context) => OverviewResultScreen(
+            name: widget.name,
+            gender: widget.gender,
+            birthDay: widget.birthDay,
+            birthMonth: widget.birthMonth,
+            birthYear: widget.birthYear,
+            height: widget.height,
+            weight: widget.weight,
+            activityLevel: widget.activityLevel,
+            goal: widget.goal,
+          ),
         ),
-      ),
-      (Route<dynamic> route) => false, // Ini akan menghapus semua rute sebelumnya
-    );
+        (Route<dynamic> route) =>
+            false, // Ini akan menghapus semua rute sebelumnya
+      );
+    }
   }
 
   @override
@@ -102,11 +101,13 @@ class _LoadingScreenState extends State<LoadingScreen> {
           children: [
             CircularProgressIndicator(
               value: _progress, // Gunakan nilai progres
-              valueColor: AlwaysStoppedAnimation<Color>(lightGreenText), // Warna loading
+              valueColor: AlwaysStoppedAnimation<Color>(
+                lightGreenText,
+              ), // Warna loading
             ),
             const SizedBox(height: 20),
             Text(
-              'Menghitung Hasil Anda...', 
+              'Menghitung Hasil Anda...',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -126,4 +127,4 @@ class _LoadingScreenState extends State<LoadingScreen> {
       ),
     );
   }
-} 
+}

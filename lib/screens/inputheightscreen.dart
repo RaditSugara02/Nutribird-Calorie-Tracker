@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_rpl_final/screens/inputweightscreen.dart';
 import 'package:flutter_application_rpl_final/widgets/progress_bar.dart';
+import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter_application_rpl_final/widgets/sound_helper.dart';
 
 class InputHeightScreen extends StatefulWidget {
   final String name;
@@ -8,8 +10,6 @@ class InputHeightScreen extends StatefulWidget {
   final int birthDay;
   final int birthMonth;
   final int birthYear;
-  final String? email;
-  final String? password;
 
   const InputHeightScreen({
     super.key,
@@ -18,8 +18,6 @@ class InputHeightScreen extends StatefulWidget {
     required this.birthDay,
     required this.birthMonth,
     required this.birthYear,
-    this.email,
-    this.password,
   });
 
   @override
@@ -29,11 +27,22 @@ class InputHeightScreen extends StatefulWidget {
 class _InputHeightScreenState extends State<InputHeightScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _heightController = TextEditingController();
+  final AudioPlayer _audioPlayer = AudioPlayer();
 
   @override
   void dispose() {
     _heightController.dispose();
+    _audioPlayer.dispose();
     super.dispose();
+  }
+
+  // Fungsi untuk memutar suara error
+  void _playErrorSound() {
+    try {
+      _audioPlayer.play(AssetSource('error.wav'));
+    } catch (e) {
+      print('Error playing sound: $e');
+    }
   }
 
   @override
@@ -56,13 +65,18 @@ class _InputHeightScreenState extends State<InputHeightScreen> {
                 children: [
                   IconButton(
                     icon: Icon(Icons.arrow_back_ios, color: lightGreenText),
-                    onPressed: () {
-                      Navigator.pop(context);
+                    onPressed: () async {
+                      await SoundHelper.playTransition();
+                      if (mounted) {
+                        Navigator.pop(context);
+                      }
                     },
                   ),
                   Expanded(
                     child: Padding(
-                      padding: const EdgeInsets.only(right: 20.0), // Adjust padding as needed
+                      padding: const EdgeInsets.only(
+                        right: 20.0,
+                      ), // Adjust padding as needed
                       child: ProgressBar(currentStep: 4, totalSteps: 7),
                     ),
                   ),
@@ -119,13 +133,16 @@ class _InputHeightScreenState extends State<InputHeightScreen> {
                 keyboardType: TextInputType.number,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
+                    _playErrorSound();
                     return 'Tinggi badan tidak boleh kosong';
                   }
                   final double? height = double.tryParse(value);
                   if (height == null) {
+                    _playErrorSound();
                     return 'Masukkan angka yang valid';
                   }
                   if (height < 50 || height > 250) {
+                    _playErrorSound();
                     return 'Tinggi badan harus antara 50 cm dan 250 cm';
                   }
                   return null;
@@ -135,23 +152,24 @@ class _InputHeightScreenState extends State<InputHeightScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (_formKey.currentState!.validate()) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => InputWeightScreen(
-                            name: widget.name,
-                            gender: widget.gender,
-                            birthDay: widget.birthDay,
-                            birthMonth: widget.birthMonth,
-                            birthYear: widget.birthYear,
-                            height: double.parse(_heightController.text),
-                            email: widget.email ?? '',
-                            password: widget.password ?? '',
+                      await SoundHelper.playTransition();
+                      if (mounted) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => InputWeightScreen(
+                              name: widget.name,
+                              gender: widget.gender,
+                              birthDay: widget.birthDay,
+                              birthMonth: widget.birthMonth,
+                              birthYear: widget.birthYear,
+                              height: double.parse(_heightController.text),
+                            ),
                           ),
-                        ),
-                      );
+                        );
+                      }
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -174,4 +192,4 @@ class _InputHeightScreenState extends State<InputHeightScreen> {
       ),
     );
   }
-} 
+}
