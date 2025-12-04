@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter_application_rpl_final/utils/logger.dart';
 
 class AddWeightScreen extends StatefulWidget {
   final Function(double weight) onWeightAdded;
@@ -114,8 +115,8 @@ class _AddWeightScreenState extends State<AddWeightScreen> {
           }
         });
       }
-    } catch (e) {
-      print('Error playing sound: $e');
+    } catch (e, stackTrace) {
+      AppLogger.warning('Error playing sound', e, stackTrace);
       // Pastikan video tetap berjalan meskipun ada error
       if (_isVideoInitialized && !_videoController.value.isPlaying) {
         _videoController.play();
@@ -160,165 +161,171 @@ class _AddWeightScreenState extends State<AddWeightScreen> {
             top: 24.0,
             bottom: 24.0 + MediaQuery.of(context).padding.bottom,
           ),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Video Player dengan looping
-              if (_isVideoInitialized)
-                Container(
-                  height: 200,
-                  width: double.infinity,
-                  margin: const EdgeInsets.only(bottom: 24.0),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: lightGreenText.withOpacity(0.5),
-                      width: 2,
-                    ),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: FittedBox(
-                      fit: BoxFit.cover,
-                      child: SizedBox(
-                        width: _videoController.value.size.width,
-                        height: _videoController.value.size.height,
-                        child: VideoPlayer(_videoController),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Video Player dengan looping
+                if (_isVideoInitialized)
+                  Container(
+                    height: 200,
+                    width: double.infinity,
+                    margin: const EdgeInsets.only(bottom: 24.0),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: lightGreenText.withOpacity(0.5),
+                        width: 2,
                       ),
                     ),
-                  ),
-                )
-              else
-                Container(
-                  height: 200,
-                  margin: const EdgeInsets.only(bottom: 24.0),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: lightGreenText.withOpacity(0.5),
-                      width: 2,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: FittedBox(
+                        fit: BoxFit.cover,
+                        child: SizedBox(
+                          width: _videoController.value.size.width,
+                          height: _videoController.value.size.height,
+                          child: VideoPlayer(_videoController),
+                        ),
+                      ),
                     ),
-                    color: darkGreenBg,
+                  )
+                else
+                  Container(
+                    height: 200,
+                    margin: const EdgeInsets.only(bottom: 24.0),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: lightGreenText.withOpacity(0.5),
+                        width: 2,
+                      ),
+                      color: darkGreenBg,
+                    ),
+                    child: Center(
+                      child: CircularProgressIndicator(color: lightGreenText),
+                    ),
                   ),
-                  child: Center(
-                    child: CircularProgressIndicator(color: lightGreenText),
-                  ),
+                Text(
+                  'Berat Badan (kg)',
+                  style: TextStyle(fontSize: 16, color: lightGreenText),
                 ),
-              Text(
-                'Berat Badan (kg)',
-                style: TextStyle(fontSize: 16, color: lightGreenText),
-              ),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _weightController,
-                style: TextStyle(color: lightGreenText),
-                keyboardType: TextInputType.number, // Memastikan input numerik
-                decoration: InputDecoration(
-                  hintText: 'Contoh: 65.5',
-                  hintStyle: TextStyle(color: lightGreenText.withOpacity(0.6)),
-                  filled: true,
-                  fillColor: darkGreenBg,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(color: lightGreenText),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: _weightController,
+                  style: TextStyle(color: lightGreenText),
+                  keyboardType:
+                      TextInputType.number, // Memastikan input numerik
+                  decoration: InputDecoration(
+                    hintText: 'Contoh: 65.5',
+                    hintStyle: TextStyle(
+                      color: lightGreenText.withOpacity(0.6),
+                    ),
+                    filled: true,
+                    fillColor: darkGreenBg,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: lightGreenText),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: lightGreenText),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: lightGreenText, width: 2.0),
+                    ),
+                    errorStyle: TextStyle(color: Colors.redAccent),
                   ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(color: lightGreenText),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(color: lightGreenText, width: 2.0),
-                  ),
-                  errorStyle: TextStyle(color: Colors.redAccent),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    _playErrorSound();
-                    // Pastikan video tetap berjalan setelah validator error
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      if (_isVideoInitialized &&
-                          !_videoController.value.isPlaying) {
-                        _videoController.play();
-                      }
-                    });
-                    return 'Berat badan tidak boleh kosong';
-                  }
-                  final weight = double.tryParse(value);
-                  if (weight == null) {
-                    _playErrorSound();
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      if (_isVideoInitialized &&
-                          !_videoController.value.isPlaying) {
-                        _videoController.play();
-                      }
-                    });
-                    return 'Masukkan angka yang valid';
-                  }
-                  if (weight < 20) {
-                    _playErrorSound();
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      if (_isVideoInitialized &&
-                          !_videoController.value.isPlaying) {
-                        _videoController.play();
-                      }
-                    });
-                    return 'Berat badan minimal 20 kg';
-                  }
-                  if (weight > 200) {
-                    _playErrorSound();
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      if (_isVideoInitialized &&
-                          !_videoController.value.isPlaying) {
-                        _videoController.play();
-                      }
-                    });
-                    return 'Berat badan maksimal 200 kg';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 40),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    if (_formKey.currentState!.validate()) {
-                      final double weight = double.parse(
-                        _weightController.text,
-                      );
-                      widget.onWeightAdded(weight);
-                      if (mounted) {
-                        Navigator.pop(context);
-                      }
-                    } else {
-                      // Pastikan video tetap berjalan jika validasi gagal
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      _playErrorSound();
+                      // Pastikan video tetap berjalan setelah validator error
                       WidgetsBinding.instance.addPostFrameCallback((_) {
                         if (_isVideoInitialized &&
                             !_videoController.value.isPlaying) {
                           _videoController.play();
                         }
                       });
+                      return 'Berat badan tidak boleh kosong';
                     }
+                    final weight = double.tryParse(value);
+                    if (weight == null) {
+                      _playErrorSound();
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (_isVideoInitialized &&
+                            !_videoController.value.isPlaying) {
+                          _videoController.play();
+                        }
+                      });
+                      return 'Masukkan angka yang valid';
+                    }
+                    if (weight < 20) {
+                      _playErrorSound();
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (_isVideoInitialized &&
+                            !_videoController.value.isPlaying) {
+                          _videoController.play();
+                        }
+                      });
+                      return 'Berat badan minimal 20 kg';
+                    }
+                    if (weight > 200) {
+                      _playErrorSound();
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (_isVideoInitialized &&
+                            !_videoController.value.isPlaying) {
+                          _videoController.play();
+                        }
+                      });
+                      return 'Berat badan maksimal 200 kg';
+                    }
+                    return null;
                   },
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    backgroundColor: lightGreenText,
-                    foregroundColor: darkText,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
+                ),
+                const SizedBox(height: 40),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      if (_formKey.currentState!.validate()) {
+                        final double weight = double.parse(
+                          _weightController.text,
+                        );
+                        widget.onWeightAdded(weight);
+                        if (mounted) {
+                          Navigator.pop(context);
+                        }
+                      } else {
+                        // Pastikan video tetap berjalan jika validasi gagal
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (_isVideoInitialized &&
+                              !_videoController.value.isPlaying) {
+                            _videoController.play();
+                          }
+                        });
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      backgroundColor: lightGreenText,
+                      foregroundColor: darkText,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                    ),
+                    child: const Text(
+                      'Catat Berat Badan',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
-                  child: const Text(
-                    'Catat Berat Badan',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
           ),
         ),
       ),

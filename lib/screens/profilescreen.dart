@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter_application_rpl_final/screens/editprofilescreen.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:flutter_application_rpl_final/widgets/permission_helper.dart';
 import 'package:flutter_application_rpl_final/widgets/custom_page_route.dart';
 
@@ -84,11 +84,11 @@ class ProfileScreenState extends State<ProfileScreen> {
 
       if (pickedFile != null) {
         try {
-          // Prepare output path untuk cropped image
-          final appDocDir = await getApplicationDocumentsDirectory();
-          final String outputFileName =
-              'profile_${DateTime.now().millisecondsSinceEpoch}.jpg';
-          final String outputPath = '${appDocDir.path}/$outputFileName';
+          // Sembunyikan status bar sepenuhnya agar header turun dan tombol mudah dijangkau
+          SystemChrome.setEnabledSystemUIMode(
+            SystemUiMode.immersiveSticky,
+            overlays: [],
+          );
 
           // Crop image - SQUARE untuk profile photo (locked aspect ratio)
           final CroppedFile? croppedFile = await ImageCropper().cropImage(
@@ -99,6 +99,7 @@ class ProfileScreenState extends State<ProfileScreen> {
                 toolbarTitle: 'Crop Foto Profil',
                 toolbarColor: const Color(0xFF1D362C), // Dark green
                 toolbarWidgetColor: const Color(0xFFA2F46E), // Light green
+                statusBarColor: const Color(0xFF1D362C), // Match toolbar color
                 initAspectRatio: CropAspectRatioPreset.square,
                 lockAspectRatio: true, // Lock square untuk profile
                 aspectRatioPresets: [CropAspectRatioPreset.square],
@@ -120,6 +121,12 @@ class ProfileScreenState extends State<ProfileScreen> {
             ],
             compressFormat: ImageCompressFormat.jpg,
             compressQuality: 85,
+          );
+
+          // Restore status bar setelah crop selesai
+          SystemChrome.setEnabledSystemUIMode(
+            SystemUiMode.edgeToEdge,
+            overlays: SystemUiOverlay.values,
           );
 
           if (croppedFile != null && croppedFile.path.isNotEmpty) {
@@ -170,7 +177,11 @@ class ProfileScreenState extends State<ProfileScreen> {
               }
             }
           } else {
-            // User cancel crop
+            // User cancel crop - restore status bar
+            SystemChrome.setEnabledSystemUIMode(
+              SystemUiMode.edgeToEdge,
+              overlays: SystemUiOverlay.values,
+            );
             print('User canceled crop');
           }
         } catch (e) {

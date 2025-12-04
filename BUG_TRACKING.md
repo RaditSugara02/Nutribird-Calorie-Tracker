@@ -92,18 +92,30 @@
 - ProfileScreen - fungsi `_pickProfileImage()` dengan crop setelah memilih gambar
 - android/app/src/main/AndroidManifest.xml - permission WRITE_EXTERNAL_STORAGE
 
-### ✅ Masalah 9: Force Close Saat Memilih Foto dari Galeri
+### ✅ Masalah 9: Force Close Saat Memilih Foto dari Galeri (Image Crop)
 **Status:** ✅ Selesai  
-**Deskripsi:** Aplikasi force close ketika user memilih foto dari galeri. Masalah terjadi karena ImageCropper crash saat dipanggil, kemungkinan karena konfigurasi Android yang kurang atau masalah dengan FileProvider.  
+**Deskripsi:** Aplikasi force close ketika user memilih foto dari galeri untuk crop. Masalah terjadi karena ImageCropper crash saat dipanggil, kemungkinan karena konfigurasi Android FileProvider yang kurang atau masalah dengan path file.  
 **Solusi yang diterapkan:** 
-- **Menonaktifkan crop sementara** untuk menghindari crash - aplikasi sekarang langsung menggunakan gambar asli tanpa crop
-- Menyederhanakan proses pemilihan gambar: pick image → save langsung tanpa crop
-- Menambahkan error handling yang lebih baik untuk operasi file copy
-- Menampilkan pesan error yang informatif jika terjadi masalah saat menyimpan gambar
-- **Catatan:** Fitur crop bisa diaktifkan kembali nanti setelah konfigurasi Android (FileProvider) diperbaiki
+- **Setup FileProvider Configuration:**
+  - Membuat file `android/app/src/main/res/xml/file_provider_paths.xml` dengan konfigurasi paths untuk external storage, files, cache, dan external cache
+  - Menambahkan FileProvider di AndroidManifest.xml dengan authority `${applicationId}.fileprovider`
+  - Menambahkan UCropActivity di AndroidManifest.xml untuk mendukung image_cropper
+- **Perbaikan Image Picking Flow:**
+  - Menggunakan `pickedFile.path` langsung ke image_cropper (tanpa copy ke temp)
+  - Copy hasil crop ke documents directory dengan verifikasi file existence
+  - Menambahkan error handling yang lebih baik untuk operasi file copy
+  - Menampilkan pesan error yang informatif jika terjadi masalah
+- **UI Customization:**
+  - Food photos: Flexible aspect ratio (square, 3:2, 4:3, 16:9, original) dengan lockAspectRatio: false
+  - Profile photos: Square aspect ratio (locked) dengan lockAspectRatio: true
+  - Custom toolbar colors sesuai tema aplikasi (dark green #1D362C, light green #A2F46E)
+  - Grid overlay untuk crop guidance
+  - Rotate dan zoom support
 **Lokasi yang diperbaiki:** 
-- AddCustomFoodScreen - fungsi `_pickImage()` dengan crop dinonaktifkan sementara
-- ProfileScreen - fungsi `_pickProfileImage()` dengan crop dinonaktifkan sementara
+- android/app/src/main/res/xml/file_provider_paths.xml (file baru)
+- android/app/src/main/AndroidManifest.xml - FileProvider & UCropActivity
+- AddCustomFoodScreen - fungsi `_pickImage()` dengan image cropper terintegrasi
+- ProfileScreen - fungsi `_pickProfileImage()` dengan image cropper terintegrasi
 
 ### ✅ Masalah 10: Validasi Kalori dan Indikator Warna Merah untuk Kalori Masuk
 **Status:** ✅ Selesai  
@@ -211,6 +223,44 @@
   - Padding bottom menyesuaikan dengan tinggi system navigation bar menggunakan `MediaQuery.of(context).padding.bottom`
 **Lokasi yang diperbaiki:** 
 - DashboardScreen - menambahkan SafeArea, LayoutBuilder untuk circular progress indicator, dan membuat semua ukuran responsif berdasarkan lebar layar
+
+### ✅ Fitur Baru: Smart Macro Estimation & Validation System
+**Status:** ✅ Selesai  
+**Deskripsi:** Menambahkan sistem estimasi macro otomatis dan validasi yang cerdas untuk halaman tambah makanan kustom. Sistem ini auto-detect kategori makanan dari nama, generate estimasi macro, dan melakukan validasi real-time untuk memastikan konsistensi data.  
+**Solusi yang diterapkan:** 
+- **Smart Default Estimation:**
+  - Auto-detect kategori makanan dari nama (Protein-Heavy, Carb-Heavy, Fat-Heavy, Mixed, Balanced)
+  - Generate estimasi macro (protein, fat, carb) berdasarkan kategori dan kalori input
+  - Auto-fill field macro saat user input kalori (jika checkbox "Sudah sesuai?" checked)
+- **User Laziness / Adoption Barrier:**
+  - Menambahkan checkbox "Sudah sesuai?" yang default checked
+  - User bisa langsung simpan tanpa edit macro jika estimasi sudah sesuai
+  - User bisa uncheck untuk edit manual
+- **Data Consistency & Validation:**
+  - Real-time validation untuk konsistensi kalori (macro total vs input kalori) dengan toleransi 20%
+  - Hard limits validation untuk mencegah input yang tidak realistis
+  - Realistic ratio validation berdasarkan kategori makanan
+  - Special case handlers untuk 0g macro dan unknown category
+- **Visual Feedback:**
+  - Border color: hijau (valid), kuning (warning), merah (error)
+  - Icon indicators: ✓ (valid), ⚠️ (warning), ❌ (error)
+  - Alert dialogs untuk warning/error dengan option untuk lanjut atau batal
+- **Debounce untuk Input:**
+  - Menambahkan debounce 500ms untuk prevent spam notification saat user mengetik
+  - Notification hanya muncul saat kategori berubah, bukan setiap karakter
+- **Architecture:**
+  - `MacroEstimator` - Category detection & macro estimation
+  - `MacroValidator` - Hard limits, consistency, realistic ratio validation
+  - `AlertMessageFactory` - Consistent alert message generation
+  - `AddCustomFoodState` - State model dengan validation tracking
+  - `NutritionDataSource` - Future-proofing untuk database lookup
+**Lokasi yang diperbaiki:** 
+- lib/utils/macro_estimator.dart (file baru)
+- lib/utils/macro_validator.dart (file baru)
+- lib/utils/alert_message_factory.dart (file baru)
+- lib/models/add_custom_food_state.dart (file baru)
+- lib/utils/nutrition_data_source.dart (file baru)
+- AddCustomFoodScreen - integrasi smart estimation & validation dengan real-time feedback
 
 ---
 

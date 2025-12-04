@@ -1,12 +1,37 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:audio_session/audio_session.dart';
 import 'package:flutter_application_rpl_final/screens/welcomescreen_1.dart';
 import 'package:flutter_application_rpl_final/screens/dashboardscreen.dart';
+import 'package:flutter_application_rpl_final/services/background_music_service.dart';
+import 'package:flutter_application_rpl_final/utils/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Set logging mode (debug mode hanya aktif di development)
+  AppLogger.setDebugMode(kDebugMode);
+
   await initializeDateFormatting('id_ID', null);
+
+  // Konfigurasi audio session untuk just_audio (musik & efek)
+  try {
+    final session = await AudioSession.instance;
+    await session.configure(const AudioSessionConfiguration.music());
+  } catch (e, stackTrace) {
+    AppLogger.warning('Failed to configure audio session', e, stackTrace);
+  }
+
+  // Initialize background music service
+  try {
+    // Jangan blokir startup UI; inisialisasi musik dilakukan di background
+    BackgroundMusicService().initialize();
+  } catch (e, stackTrace) {
+    AppLogger.error('Failed to initialize background music', e, stackTrace);
+  }
+
   runApp(const MainApp());
 }
 

@@ -17,6 +17,8 @@ dependencies:
   intl: ^0.20.2
   video_player: ^2.8.2
   audioplayers: ^6.1.0
+  just_audio: ^0.9.42
+  audio_session: ^0.1.19
   permission_handler: ^11.3.1
   image_cropper: ^8.0.2
   lottie: ^3.1.2
@@ -36,6 +38,7 @@ flutter:
     - lib/vid/
     - assets/
     - assets/lottie/
+    - assets/background_music.mp3
 
 flutter_icons:
   android: true

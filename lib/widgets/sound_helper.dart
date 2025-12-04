@@ -1,7 +1,33 @@
-import 'package:audioplayers/audioplayers.dart';
+import 'package:just_audio/just_audio.dart';
+import 'package:flutter_application_rpl_final/services/background_music_service.dart';
+import 'package:flutter_application_rpl_final/utils/logger.dart';
 
 class SoundHelper {
-  static final AudioPlayer _audioPlayer = AudioPlayer();
+  /// Player global untuk efek suara yang bisa overlap dengan background music
+  static final AudioPlayer _effectPlayer = AudioPlayer();
+
+  /// Inisialisasi sekali (bisa dipanggil dari main atau saat pertama kali dipakai)
+  static Future<void> initialize() async {
+    // Tidak perlu konfigurasi khusus di sini untuk just_audio
+  }
+
+  /// Helper internal untuk memutar efek suara dari assets
+  static Future<void> _playEffect(
+    String assetPath, {
+    double volume = 1.0,
+  }) async {
+    try {
+      await _effectPlayer.setAudioSource(AudioSource.asset(assetPath));
+      await _effectPlayer.setVolume(volume.clamp(0.0, 1.0));
+      await _effectPlayer.play();
+    } catch (e, stackTrace) {
+      AppLogger.warning(
+        'Error playing sound effect: $assetPath',
+        e,
+        stackTrace,
+      );
+    }
+  }
 
   // Memutar suara transisi (sementara dinonaktifkan)
   static Future<void> playTransition() async {
@@ -11,29 +37,22 @@ class SoundHelper {
 
   // Memutar suara error
   static Future<void> playError() async {
-    try {
-      await _audioPlayer.play(AssetSource('error.wav'));
-    } catch (e) {
-      print('Error playing error sound: $e');
-    }
+    // Trade-off: jika musik latar aktif, jangan putar suara error
+    // untuk mencegah musik dipause oleh sistem/audio focus.
+    final musicService = BackgroundMusicService();
+    if (musicService.isEnabled) return;
+
+    await _playEffect('assets/error.wav');
   }
 
   // Memutar suara success
   static Future<void> playSuccess() async {
-    try {
-      await _audioPlayer.play(AssetSource('success.wav'));
-    } catch (e) {
-      print('Error playing success sound: $e');
-    }
+    await _playEffect('assets/success.wav');
   }
 
   // Memutar suara click (sementara dinonaktifkan)
   static Future<void> playClick() async {
     // Fungsi dinonaktifkan sementara - akan diganti dengan suara baru nanti
     return;
-  }
-
-  static void dispose() {
-    _audioPlayer.dispose();
   }
 }

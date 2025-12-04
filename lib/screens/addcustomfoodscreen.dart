@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_application_rpl_final/screens/dashboardscreen.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
@@ -10,6 +11,8 @@ import 'package:flutter_application_rpl_final/widgets/permission_helper.dart';
 import 'package:flutter_application_rpl_final/models/add_custom_food_state.dart';
 import 'package:flutter_application_rpl_final/utils/macro_estimator.dart';
 import 'package:flutter_application_rpl_final/utils/alert_message_factory.dart';
+import 'package:flutter_application_rpl_final/utils/logger.dart';
+import 'package:flutter_application_rpl_final/utils/error_handler.dart';
 
 class AddCustomFoodScreen extends StatefulWidget {
   final Function(
@@ -373,8 +376,8 @@ class _AddCustomFoodScreenState extends State<AddCustomFoodScreen> {
   void _playErrorSound() {
     try {
       _audioPlayer.play(AssetSource('error.wav'));
-    } catch (e) {
-      print('Error playing sound: $e');
+    } catch (e, stackTrace) {
+      AppLogger.warning('Error playing sound', e, stackTrace);
     }
   }
 
@@ -472,6 +475,12 @@ class _AddCustomFoodScreenState extends State<AddCustomFoodScreen> {
               'food_${DateTime.now().millisecondsSinceEpoch}.jpg';
           final String outputPath = '${appDocDir.path}/$outputFileName';
 
+          // Sembunyikan status bar sepenuhnya agar header turun dan tombol mudah dijangkau
+          SystemChrome.setEnabledSystemUIMode(
+            SystemUiMode.immersiveSticky,
+            overlays: [],
+          );
+
           // Crop image dengan image_cropper
           final CroppedFile? croppedFile = await ImageCropper().cropImage(
             sourcePath: pickedFile.path,
@@ -484,6 +493,7 @@ class _AddCustomFoodScreenState extends State<AddCustomFoodScreen> {
                 toolbarTitle: 'Crop Foto Makanan',
                 toolbarColor: const Color(0xFF1D362C), // Dark green
                 toolbarWidgetColor: const Color(0xFFA2F46E), // Light green
+                statusBarColor: const Color(0xFF1D362C), // Match toolbar color
                 initAspectRatio: CropAspectRatioPreset.square,
                 lockAspectRatio: false, // Allow user to change aspect ratio
                 aspectRatioPresets: [
@@ -519,6 +529,12 @@ class _AddCustomFoodScreenState extends State<AddCustomFoodScreen> {
             compressQuality: 85,
           );
 
+          // Restore status bar setelah crop selesai
+          SystemChrome.setEnabledSystemUIMode(
+            SystemUiMode.edgeToEdge,
+            overlays: SystemUiOverlay.values,
+          );
+
           if (croppedFile != null && croppedFile.path.isNotEmpty) {
             try {
               // Cropped file biasanya di temporary directory, copy ke documents
@@ -542,39 +558,41 @@ class _AddCustomFoodScreenState extends State<AddCustomFoodScreen> {
                   _imageFile = finalImageFile;
                 });
               }
-            } catch (e) {
-              print('Error processing cropped file: $e');
+            } catch (e, stackTrace) {
+              AppLogger.error('Error processing cropped file', e, stackTrace);
               if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Gagal memproses gambar: $e'),
-                    backgroundColor: Colors.redAccent,
-                    duration: const Duration(seconds: 3),
-                  ),
+                ErrorHandler.handleError(
+                  context,
+                  e,
+                  stackTrace,
+                  customMessage: 'Gagal memproses gambar',
                 );
               }
             }
           } else {
-            // User cancel crop
-            print('User canceled crop');
+            // User cancel crop - restore status bar
+            SystemChrome.setEnabledSystemUIMode(
+              SystemUiMode.edgeToEdge,
+              overlays: SystemUiOverlay.values,
+            );
+            AppLogger.debug('User canceled image crop');
           }
-        } catch (e) {
-          print('Error cropping/saving image: $e');
+        } catch (e, stackTrace) {
+          AppLogger.error('Error cropping/saving image', e, stackTrace);
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Gagal memproses gambar: $e'),
-                backgroundColor: Colors.redAccent,
-                duration: const Duration(seconds: 3),
-              ),
+            ErrorHandler.handleError(
+              context,
+              e,
+              stackTrace,
+              customMessage: 'Gagal memproses gambar',
             );
           }
         }
       } else {
-        print('No image selected.');
+        AppLogger.debug('No image selected by user');
       }
-    } catch (e) {
-      print('Error picking image: $e');
+    } catch (e, stackTrace) {
+      AppLogger.error('Error picking image', e, stackTrace);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
